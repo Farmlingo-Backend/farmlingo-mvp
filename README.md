@@ -1,6 +1,6 @@
  ## Farmlingo Backend (Node.js/TypeScript API)
 
-A clean, modular, and scalable Node.js backend starter for the Farmlingo platform.
+A clean, modular, and scalable Node.js backend API for the Farmlingo platform.
 This backend provides a solid foundation with routing, middleware, environment configuration, and a built-in `/health` status endpoint.
 
 ---
@@ -431,6 +431,7 @@ If it does not render in your viewer, open the file directly at [Direct Sequence
 
 You can access the Swagger UI for the Farmlingo backend here:  
 [Open Swagger UI](https://farmlingo-backend-swagger.onrender.com/api-docs/#/)
+
 
 
 

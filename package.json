@@ -1,0 +1,49 @@
+{
+  "name": "farmlingo-backend",
+  "version": "0.1.0",
+  "description": "Modular Node.js backend for Farmlingo (health endpoint + basic setup)",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run db:push && npm run build && node dist/server.js",
+    "dev": "npm run db:push && nodemon --watch src --watch server.ts --ext ts --exec ts-node server.ts",
+    "lint": "eslint . || true",
+    "db:push": "npx drizzle-kit push",
+    "db:studio": "npx drizzle-kit studio"
+  },
+  "author": "hannah Authur",
+  "license": "MIT",
+  "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.23",
+    "@neondatabase/serverless": "^1.0.2",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "detect-port": "^2.1.0",
+    "dotenv": "^16.6.1",
+    "drizzle-orm": "^0.44.7",
+    "express": "^4.21.2",
+    "helmet": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "svix": "^1.82.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^4.6.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.10.1",
+    "@types/swagger-jsdoc": "^3.0.2",
+    "@types/swagger-ui-express": "^4.1.3",
+    "drizzle-kit": "^0.31.7",
+    "eslint": "^8.57.1",
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

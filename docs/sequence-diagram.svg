@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="200" viewBox="0 0 1200 200">
+  <style>
+    text { font-family: Arial, Helvetica, sans-serif; }
+  </style>
+  <rect x="0" y="0" width="1200" height="200" fill="#fff" stroke="#ddd" />
+  <text x="20" y="60" font-size="24" fill="#333">Sequence diagram placeholder</text>
+  <text x="20" y="100" font-size="16" fill="#666">Replace this file with the full SVG content you provided.</text>
+  <text x="20" y="130" font-size="14" fill="#999">Path: docs/sequence-diagram.svg</text>
+</svg>

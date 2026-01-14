@@ -8,7 +8,8 @@ import {
   updateForum,
   deleteForum,
   getForumPosts,
-  createForumPost
+  createForumPost,
+  getAllForumsAdmin
 } from '../controllers/forums.controller';
 
 const router = Router();
@@ -129,3 +130,6 @@ router.put('/:forumId', clerkAuth, upload.none(), updateForum);
 router.delete('/:forumId', clerkAuth, deleteForum);
 router.get('/:forumId/posts', getForumPosts);
 router.post('/:forumId/posts', clerkAuth, upload.none(), createForumPost);
+
+// Admin endpoints
+router.get('/admin/all', clerkAuth, getAllForumsAdmin);

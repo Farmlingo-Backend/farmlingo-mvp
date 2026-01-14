@@ -198,3 +198,5 @@ router.post('/', auth_1.authenticate, upload.none(), courses_controller_1.create
 router.get('/:courseId', courses_controller_1.getCourseById);
 router.put('/:courseId', auth_1.authenticate, upload.none(), courses_controller_1.updateCourse);
 router.delete('/:courseId', auth_1.authenticate, courses_controller_1.deleteCourse);
+// Admin endpoints
+router.get('/admin/all', auth_1.authenticate, courses_controller_1.getAllCoursesAdmin);

@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.system_logs = exports.user_reports = exports.message_reactions = exports.message_read_status = exports.message_attachments = exports.chat_messages = exports.chatroom_members = exports.chatrooms = exports.post_read_status = exports.post_reactions = exports.comments = exports.forum_posts = exports.forums = exports.quiz_answers = exports.quiz_attempts = exports.question_options = exports.quiz_questions = exports.quizzes = exports.lesson_media = exports.course_certificates = exports.lesson_progress = exports.course_enrollments = exports.lessons = exports.course_ratings = exports.courses = exports.locations = exports.users = exports.logLevelEnum = exports.moduleEnum = exports.actionTypeEnum = exports.actionTakenEnum = exports.reportStatusEnum = exports.reportTypeEnum = exports.attachmentFileTypeEnum = exports.messageTypeEnum = exports.chatMemberStatusEnum = exports.chatMemberRoleEnum = exports.chatroomStatusEnum = exports.chatroomTypeEnum = exports.reactionTypeEnum = exports.commentStatusEnum = exports.forumStatusEnum = exports.quizAttemptStatusEnum = exports.quizQuestionTypeEnum = exports.mediaTypeEnum = exports.lessonProgressStatusEnum = exports.enrollmentStatusEnum = exports.lessonStatusEnum = exports.courseStatusEnum = exports.rolesEnum = void 0;
-exports.chatMessagesTable = exports.chatroomMembersTable = exports.chatroomsTable = exports.postReadStatusTable = exports.postReactionsTable = exports.commentsTable = exports.forumPostsTable = exports.forumsTable = exports.quizAnswersTable = exports.quizAttemptsTable = exports.questionOptionsTable = exports.quizQuestionsTable = exports.quizzesTable = exports.lessonMediaTable = exports.courseCertificatesTable = exports.lessonProgressTable = exports.courseEnrollmentsTable = exports.lessonsTable = exports.courseRatingsTable = exports.coursesTable = exports.locationsTable = exports.usersTable = exports.weatherDataRelations = exports.systemLogsRelations = exports.userReportsRelations = exports.messageReactionsRelations = exports.messageReadStatusRelations = exports.messageAttachmentsRelations = exports.chatMessagesRelations = exports.chatroomMembersRelations = exports.chatroomsRelations = exports.postReadStatusRelations = exports.postReactionsRelations = exports.commentsRelations = exports.forumPostsRelations = exports.forumsRelations = exports.quizAnswersRelations = exports.quizAttemptsRelations = exports.questionOptionsRelations = exports.quizQuestionsRelations = exports.quizzesRelations = exports.lessonMediaRelations = exports.courseCertificatesRelations = exports.lessonProgressRelations = exports.courseEnrollmentsRelations = exports.lessonsRelations = exports.coursesRelations = exports.locationsRelations = exports.usersRelations = exports.weather_data = void 0;
-exports.log_level_enum = exports.module_enum = exports.action_type_enum = exports.action_taken_enum = exports.report_status_enum = exports.report_type_enum = exports.attachment_file_type_enum = exports.message_type_enum = exports.chat_member_status_enum = exports.chat_member_role_enum = exports.chatroom_status_enum = exports.chatroom_type_enum = exports.reaction_type_enum = exports.comment_status_enum = exports.forum_status_enum = exports.quiz_attempt_status_enum = exports.quiz_question_type_enum = exports.media_type_enum = exports.lesson_progress_status_enum = exports.enrollment_status_enum = exports.lesson_status_enum = exports.course_status_enum = exports.roles_enum = exports.weatherDataTable = exports.systemLogsTable = exports.userReportsTable = exports.messageReactionsTable = exports.messageReadStatusTable = exports.messageAttachmentsTable = void 0;
+exports.chatroomsTable = exports.postReadStatusTable = exports.postReactionsTable = exports.commentsTable = exports.forumPostsTable = exports.forumsTable = exports.quizAnswersTable = exports.quizAttemptsTable = exports.questionOptionsTable = exports.quizQuestionsTable = exports.quizzesTable = exports.lessonMediaTable = exports.courseCertificatesTable = exports.lessonProgressTable = exports.courseEnrollmentsTable = exports.lessonsTable = exports.courseRatingsTable = exports.coursesTable = exports.locationsTable = exports.usersTable = exports.weatherDataRelations = exports.announcementsRelations = exports.systemLogsRelations = exports.userReportsRelations = exports.messageReactionsRelations = exports.messageReadStatusRelations = exports.messageAttachmentsRelations = exports.chatMessagesRelations = exports.chatroomMembersRelations = exports.chatroomsRelations = exports.postReadStatusRelations = exports.postReactionsRelations = exports.commentsRelations = exports.forumPostsRelations = exports.forumsRelations = exports.quizAnswersRelations = exports.quizAttemptsRelations = exports.questionOptionsRelations = exports.quizQuestionsRelations = exports.quizzesRelations = exports.lessonMediaRelations = exports.courseCertificatesRelations = exports.lessonProgressRelations = exports.courseEnrollmentsRelations = exports.lessonsRelations = exports.coursesRelations = exports.locationsRelations = exports.usersRelations = exports.weather_data = exports.announcements = void 0;
+exports.log_level_enum = exports.module_enum = exports.action_type_enum = exports.action_taken_enum = exports.report_status_enum = exports.report_type_enum = exports.attachment_file_type_enum = exports.message_type_enum = exports.chat_member_status_enum = exports.chat_member_role_enum = exports.chatroom_status_enum = exports.chatroom_type_enum = exports.reaction_type_enum = exports.comment_status_enum = exports.forum_status_enum = exports.quiz_attempt_status_enum = exports.quiz_question_type_enum = exports.media_type_enum = exports.lesson_progress_status_enum = exports.enrollment_status_enum = exports.lesson_status_enum = exports.course_status_enum = exports.roles_enum = exports.weatherDataTable = exports.announcementsTable = exports.systemLogsTable = exports.userReportsTable = exports.messageReactionsTable = exports.messageReadStatusTable = exports.messageAttachmentsTable = exports.chatMessagesTable = exports.chatroomMembersTable = void 0;
 // src/db/schema.ts
 const pg_core_1 = require("drizzle-orm/pg-core");
 const drizzle_orm_1 = require("drizzle-orm");
@@ -168,20 +168,18 @@ exports.log_level_enum = exports.logLevelEnum;
  */
 exports.users = (0, pg_core_1.pgTable)("users", {
     user_id: (0, pg_core_1.uuid)("user_id").primaryKey().defaultRandom(),
-    clerk_user_id: (0, pg_core_1.varchar)("clerk_user_id", { length: 128 }),
-    email: (0, pg_core_1.varchar)("email", { length: 320 }).notNull(),
+    clerk_user_id: (0, pg_core_1.varchar)("clerk_user_id", { length: 128 }).unique(),
+    email: (0, pg_core_1.varchar)("email", { length: 320 }).notNull().unique(),
     first_name: (0, pg_core_1.varchar)("first_name", { length: 128 }),
     last_name: (0, pg_core_1.varchar)("last_name", { length: 128 }),
-    password_hash: (0, pg_core_1.varchar)("password_hash", { length: 72 }),
-    role: (0, exports.rolesEnum)("role").notNull().default("student"),
-    location_id: (0, pg_core_1.uuid)("location_id"),
-    preferences: (0, pg_core_1.jsonb)("preferences"),
+    image_url: (0, pg_core_1.varchar)("image_url", { length: 1000 }),
     created_at: (0, pg_core_1.timestamp)("created_at", { withTimezone: true })
         .defaultNow()
         .notNull(),
     updated_at: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }),
+    last_login: (0, pg_core_1.timestamp)("last_login", { withTimezone: true }),
     is_active: (0, pg_core_1.boolean)("is_active").default(true).notNull(),
-}, (table) => [
+}, () => [
 // unique constraints
 // clerk_user_id optional unique
 // NOTE: Drizzle uniqueIndex helper is used as table-level indexes
@@ -655,6 +653,21 @@ exports.system_logs = (0, pg_core_1.pgTable)("system_logs", {
 });
 exports.systemLogsTable = exports.system_logs;
 /**
+ * ANNOUNCEMENTS
+ */
+exports.announcements = (0, pg_core_1.pgTable)("announcements", {
+    announcement_id: (0, pg_core_1.uuid)("announcement_id").primaryKey().defaultRandom(),
+    title: (0, pg_core_1.varchar)("title", { length: 512 }).notNull(),
+    content: (0, pg_core_1.text)("content").notNull(),
+    created_by: (0, pg_core_1.uuid)("created_by").notNull(),
+    is_active: (0, pg_core_1.boolean)("is_active").default(true),
+    created_at: (0, pg_core_1.timestamp)("created_at", { withTimezone: true })
+        .defaultNow()
+        .notNull(),
+    updated_at: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }),
+});
+exports.announcementsTable = exports.announcements;
+/**
  * WEATHER_DATA
  */
 exports.weather_data = (0, pg_core_1.pgTable)("weather_data", {
@@ -676,9 +689,7 @@ exports.weatherDataTable = exports.weather_data;
  * can be used by service code. This is verbose but helps type-safety.
  */
 /* Users relations */
-exports.usersRelations = (0, drizzle_orm_1.relations)(exports.users, ({ many, one }) => ({
-    // user -> location
-    location: one(exports.locations, { fields: [exports.users.location_id], references: [exports.locations.location_id] }),
+exports.usersRelations = (0, drizzle_orm_1.relations)(exports.users, ({ many }) => ({
     // user -> courses created
     courses_created: many(exports.courses),
     // user -> forum posts
@@ -837,6 +848,10 @@ exports.userReportsRelations = (0, drizzle_orm_1.relations)(exports.user_reports
 /* System logs relations */
 exports.systemLogsRelations = (0, drizzle_orm_1.relations)(exports.system_logs, ({ one }) => ({
     user: one(exports.users, { fields: [exports.system_logs.user_id], references: [exports.users.user_id] }),
+}));
+/* Announcements relations */
+exports.announcementsRelations = (0, drizzle_orm_1.relations)(exports.announcements, ({ one }) => ({
+    creator: one(exports.users, { fields: [exports.announcements.created_by], references: [exports.users.user_id] }),
 }));
 /* Weather data relations */
 exports.weatherDataRelations = (0, drizzle_orm_1.relations)(exports.weather_data, ({ one }) => ({

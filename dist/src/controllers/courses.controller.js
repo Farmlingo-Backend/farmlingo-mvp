@@ -1,9 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteCourse = exports.updateCourse = exports.getCourseById = exports.createCourse = exports.getCourses = void 0;
-const drizzle_orm_1 = require("drizzle-orm");
-const dbconfig_1 = require("../db/dbconfig");
-const schema_1 = require("../db/schema");
+exports.getAllCoursesAdmin = exports.deleteCourse = exports.updateCourse = exports.getCourseById = exports.createCourse = exports.getCourses = void 0;
+const courses_service_1 = require("../services/courses.service");
 const createHttpError = (status, message) => {
     const err = new Error(message);
     err.status = status;
@@ -14,9 +12,8 @@ const getCourses = async (req, res, next) => {
     try {
         const page = Math.max(parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10) || 1, 1);
         const limit = Math.max(parseInt(String((_b = req.query.limit) !== null && _b !== void 0 ? _b : '10'), 10) || 10, 1);
-        const offset = (page - 1) * limit;
-        const rows = await dbconfig_1.db.select().from(schema_1.courses).limit(limit).offset(offset);
-        res.status(200).json({ data: rows, pagination: { page, limit } });
+        const result = await courses_service_1.courseService.getCourses(page, limit);
+        res.status(200).json(result);
     }
     catch (err) {
         next(err);
@@ -26,9 +23,11 @@ exports.getCourses = getCourses;
 const createCourse = async (req, res, next) => {
     try {
         const body = req.body;
-        const [created] = await dbconfig_1.db
-            .insert(schema_1.courses)
-            .values({
+        // Basic validation could be moved to service or keep here as controller concern
+        if (!body.title) {
+            return next(createHttpError(400, "Title is required"));
+        }
+        const created = await courses_service_1.courseService.createCourse({
             title: body.title,
             description: body.description,
             category: body.category,
@@ -36,8 +35,7 @@ const createCourse = async (req, res, next) => {
             thumbnail_url: body.thumbnail_url,
             status: body.status,
             creator_id: body.creator_id,
-        })
-            .returning();
+        });
         res.status(201).json(created);
     }
     catch (err) {
@@ -48,8 +46,7 @@ exports.createCourse = createCourse;
 const getCourseById = async (req, res, next) => {
     try {
         const { courseId } = req.params;
-        const rows = await dbconfig_1.db.select().from(schema_1.courses).where((0, drizzle_orm_1.eq)(schema_1.courses.course_id, courseId)).limit(1);
-        const course = rows[0];
+        const course = await courses_service_1.courseService.getCourseById(courseId);
         if (!course)
             return next(createHttpError(404, 'Course not found'));
         res.status(200).json(course);
@@ -63,18 +60,14 @@ const updateCourse = async (req, res, next) => {
     try {
         const { courseId } = req.params;
         const body = req.body;
-        const [updated] = await dbconfig_1.db
-            .update(schema_1.courses)
-            .set({
+        const updated = await courses_service_1.courseService.updateCourse(courseId, {
             title: body.title,
             description: body.description,
             category: body.category,
             language: body.language,
             thumbnail_url: body.thumbnail_url,
             status: body.status,
-        })
-            .where((0, drizzle_orm_1.eq)(schema_1.courses.course_id, courseId))
-            .returning();
+        });
         if (!updated)
             return next(createHttpError(404, 'Course not found'));
         res.status(200).json(updated);
@@ -87,8 +80,8 @@ exports.updateCourse = updateCourse;
 const deleteCourse = async (req, res, next) => {
     try {
         const { courseId } = req.params;
-        const result = await dbconfig_1.db.delete(schema_1.courses).where((0, drizzle_orm_1.eq)(schema_1.courses.course_id, courseId)).returning();
-        if (result.length === 0)
+        const deleted = await courses_service_1.courseService.deleteCourse(courseId);
+        if (!deleted)
             return next(createHttpError(404, 'Course not found'));
         res.status(204).send();
     }
@@ -97,3 +90,24 @@ const deleteCourse = async (req, res, next) => {
     }
 };
 exports.deleteCourse = deleteCourse;
+// Admin endpoints for managing courses
+const getAllCoursesAdmin = async (req, res, next) => {
+    var _a, _b;
+    try {
+        const auth = req.auth;
+        if (!auth) {
+            return next(createHttpError(401, 'Unauthorized'));
+        }
+        if (auth.role !== 'admin' && auth.role !== 'super_admin') {
+            return next(createHttpError(403, 'Forbidden: Admin access required'));
+        }
+        const page = Math.max(parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10) || 1, 1);
+        const limit = Math.max(parseInt(String((_b = req.query.limit) !== null && _b !== void 0 ? _b : '50'), 10) || 50, 1);
+        const result = await courses_service_1.courseService.getCourses(page, limit);
+        res.status(200).json(result);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getAllCoursesAdmin = getAllCoursesAdmin;

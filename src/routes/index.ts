@@ -6,7 +6,9 @@ import lessonsRouter from './lessons.route';
 import forumsRouter from './forums.route';
 import enrollmentsRouter from './enrollments.route';
 import chatRouter from './chat.route';
-import chatsRouter from './chats.route'; // Direct chat
+// import chatsRouter from './chats.route'; // Direct chat
+import announcementsRouter from './announcements.route';
+import adminRouter from './admin.route';
 import webhooksRouter from './webhooks.route'; // Clerk webhooks
 
 const router = Router();
@@ -18,7 +20,9 @@ router.use('/lessons', lessonsRouter);
 router.use('/forums', forumsRouter);
 router.use('/enrollments', enrollmentsRouter);
 router.use('/chatrooms', chatRouter);
-router.use('/chats', chatsRouter); // Mount for direct chat endpoints
-router.use('/webhooks', webhooksRouter); // Mount webhook endpoints
+// router.use('/chats', chatsRouter); 
+router.use('/announcements', announcementsRouter);
+router.use('/admin', adminRouter);
+router.use('/webhooks', webhooksRouter); 
 
 export default router;

@@ -1,9 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createForumPost = exports.getForumPosts = exports.deleteForum = exports.updateForum = exports.getForumById = exports.createForum = exports.getForums = void 0;
-const drizzle_orm_1 = require("drizzle-orm");
-const dbconfig_1 = require("../db/dbconfig");
-const schema_1 = require("../db/schema");
+exports.getAllForumsAdmin = exports.createForumPost = exports.getForumPosts = exports.deleteForum = exports.updateForum = exports.getForumById = exports.createForum = exports.getForums = void 0;
+const forums_service_1 = require("../services/forums.service");
 const createHttpError = (status, message) => {
     const err = new Error(message);
     err.status = status;
@@ -33,9 +31,8 @@ const getForums = async (req, res, next) => {
     try {
         const page = Math.max(parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10) || 1, 1);
         const limit = Math.max(parseInt(String((_b = req.query.limit) !== null && _b !== void 0 ? _b : '10'), 10) || 10, 1);
-        const offset = (page - 1) * limit;
-        const rows = await dbconfig_1.db.select().from(schema_1.forums).limit(limit).offset(offset);
-        res.status(200).json({ data: rows, pagination: { page, limit } });
+        const result = await forums_service_1.forumService.getForums(page, limit);
+        res.status(200).json(result);
     }
     catch (err) {
         next(err);
@@ -45,17 +42,17 @@ exports.getForums = getForums;
 const createForum = async (req, res, next) => {
     try {
         const body = req.body;
-        const [created] = await dbconfig_1.db
-            .insert(schema_1.forums)
-            .values({
+        if (!body.name || !body.slug) {
+            return next(createHttpError(400, "Name and Slug are required"));
+        }
+        const created = await forums_service_1.forumService.createForum({
             name: body.name,
             description: body.description,
             slug: body.slug,
             category: body.category,
             is_active: toBoolean(body.is_active),
             display_order: toNumber(body.display_order),
-        })
-            .returning();
+        });
         res.status(201).json(created);
     }
     catch (err) {
@@ -66,8 +63,7 @@ exports.createForum = createForum;
 const getForumById = async (req, res, next) => {
     try {
         const { forumId } = req.params;
-        const rows = await dbconfig_1.db.select().from(schema_1.forums).where((0, drizzle_orm_1.eq)(schema_1.forums.forum_id, forumId)).limit(1);
-        const forum = rows[0];
+        const forum = await forums_service_1.forumService.getForumById(forumId);
         if (!forum)
             return next(createHttpError(404, 'Forum not found'));
         res.status(200).json(forum);
@@ -81,18 +77,14 @@ const updateForum = async (req, res, next) => {
     try {
         const { forumId } = req.params;
         const body = req.body;
-        const [updated] = await dbconfig_1.db
-            .update(schema_1.forums)
-            .set({
+        const updated = await forums_service_1.forumService.updateForum(forumId, {
             name: body.name,
             description: body.description,
             slug: body.slug,
             category: body.category,
             is_active: toBoolean(body.is_active),
             display_order: toNumber(body.display_order),
-        })
-            .where((0, drizzle_orm_1.eq)(schema_1.forums.forum_id, forumId))
-            .returning();
+        });
         if (!updated)
             return next(createHttpError(404, 'Forum not found'));
         res.status(200).json(updated);
@@ -105,8 +97,8 @@ exports.updateForum = updateForum;
 const deleteForum = async (req, res, next) => {
     try {
         const { forumId } = req.params;
-        const result = await dbconfig_1.db.delete(schema_1.forums).where((0, drizzle_orm_1.eq)(schema_1.forums.forum_id, forumId)).returning();
-        if (result.length === 0)
+        const deleted = await forums_service_1.forumService.deleteForum(forumId);
+        if (!deleted)
             return next(createHttpError(404, 'Forum not found'));
         res.status(204).send();
     }
@@ -121,14 +113,8 @@ const getForumPosts = async (req, res, next) => {
         const { forumId } = req.params;
         const page = Math.max(parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10) || 1, 1);
         const limit = Math.max(parseInt(String((_b = req.query.limit) !== null && _b !== void 0 ? _b : '10'), 10) || 10, 1);
-        const offset = (page - 1) * limit;
-        const rows = await dbconfig_1.db
-            .select()
-            .from(schema_1.forum_posts)
-            .where((0, drizzle_orm_1.eq)(schema_1.forum_posts.forum_id, forumId))
-            .limit(limit)
-            .offset(offset);
-        res.status(200).json({ data: rows, pagination: { page, limit } });
+        const result = await forums_service_1.forumService.getForumPosts(forumId, page, limit);
+        res.status(200).json(result);
     }
     catch (err) {
         next(err);
@@ -148,16 +134,13 @@ const createForumPost = async (req, res, next) => {
                 return next(createHttpError(400, 'Invalid tags JSON'));
             }
         }
-        const [created] = await dbconfig_1.db
-            .insert(schema_1.forum_posts)
-            .values({
+        const created = await forums_service_1.forumService.createForumPost({
             forum_id: forumId,
-            user_id: body.user_id,
+            user_id: req.auth.userId,
             title: body.title,
             content: body.content,
             tags: tags,
-        })
-            .returning();
+        });
         res.status(201).json(created);
     }
     catch (err) {
@@ -165,3 +148,24 @@ const createForumPost = async (req, res, next) => {
     }
 };
 exports.createForumPost = createForumPost;
+// Admin endpoints for managing forums
+const getAllForumsAdmin = async (req, res, next) => {
+    var _a, _b;
+    try {
+        const auth = req.auth;
+        if (!auth) {
+            return next(createHttpError(401, 'Unauthorized'));
+        }
+        if (auth.role !== 'admin' && auth.role !== 'super_admin') {
+            return next(createHttpError(403, 'Forbidden: Admin access required'));
+        }
+        const page = Math.max(parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10) || 1, 1);
+        const limit = Math.max(parseInt(String((_b = req.query.limit) !== null && _b !== void 0 ? _b : '50'), 10) || 50, 1);
+        const result = await forums_service_1.forumService.getForums(page, limit);
+        res.status(200).json(result);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getAllForumsAdmin = getAllForumsAdmin;

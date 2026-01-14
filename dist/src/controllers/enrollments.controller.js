@@ -1,9 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteEnrollment = exports.updateEnrollment = exports.getEnrollmentById = exports.createEnrollment = exports.getEnrollments = void 0;
-const drizzle_orm_1 = require("drizzle-orm");
-const dbconfig_1 = require("../db/dbconfig");
-const schema_1 = require("../db/schema");
+exports.getAllEnrollmentsAdmin = exports.deleteEnrollment = exports.updateEnrollment = exports.getEnrollmentById = exports.createEnrollment = exports.getEnrollments = void 0;
+const enrollments_service_1 = require("../services/enrollments.service");
 const createHttpError = (status, message) => {
     const err = new Error(message);
     err.status = status;
@@ -20,38 +18,10 @@ const getEnrollments = async (req, res, next) => {
     try {
         const page = Math.max(parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10) || 1, 1);
         const limit = Math.max(parseInt(String((_b = req.query.limit) !== null && _b !== void 0 ? _b : '10'), 10) || 10, 1);
-        const offset = (page - 1) * limit;
         const userId = req.query.userId || undefined;
         const courseId = req.query.courseId || undefined;
-        let rows;
-        if (userId && courseId) {
-            rows = await dbconfig_1.db
-                .select()
-                .from(schema_1.course_enrollments)
-                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.course_enrollments.user_id, userId), (0, drizzle_orm_1.eq)(schema_1.course_enrollments.course_id, courseId)))
-                .limit(limit)
-                .offset(offset);
-        }
-        else if (userId) {
-            rows = await dbconfig_1.db
-                .select()
-                .from(schema_1.course_enrollments)
-                .where((0, drizzle_orm_1.eq)(schema_1.course_enrollments.user_id, userId))
-                .limit(limit)
-                .offset(offset);
-        }
-        else if (courseId) {
-            rows = await dbconfig_1.db
-                .select()
-                .from(schema_1.course_enrollments)
-                .where((0, drizzle_orm_1.eq)(schema_1.course_enrollments.course_id, courseId))
-                .limit(limit)
-                .offset(offset);
-        }
-        else {
-            rows = await dbconfig_1.db.select().from(schema_1.course_enrollments).limit(limit).offset(offset);
-        }
-        res.status(200).json({ data: rows, pagination: { page, limit } });
+        const result = await enrollments_service_1.enrollmentService.getEnrollments(page, limit, userId, courseId);
+        res.status(200).json(result);
     }
     catch (err) {
         next(err);
@@ -70,15 +40,15 @@ const createEnrollment = async (req, res, next) => {
                 return next(createHttpError(400, 'Invalid preferences JSON'));
             }
         }
-        const [created] = await dbconfig_1.db
-            .insert(schema_1.course_enrollments)
-            .values({
-            user_id: body.user_id,
+        if (!body.course_id) {
+            return next(createHttpError(400, "Course ID is required"));
+        }
+        const created = await enrollments_service_1.enrollmentService.createEnrollment({
+            user_id: req.auth.userId,
             course_id: body.course_id,
             enrollment_status: body.enrollment_status,
             preferences: preferences,
-        })
-            .returning();
+        });
         res.status(201).json(created);
     }
     catch (err) {
@@ -89,8 +59,7 @@ exports.createEnrollment = createEnrollment;
 const getEnrollmentById = async (req, res, next) => {
     try {
         const { enrollmentId } = req.params;
-        const rows = await dbconfig_1.db.select().from(schema_1.course_enrollments).where((0, drizzle_orm_1.eq)(schema_1.course_enrollments.enrollment_id, enrollmentId)).limit(1);
-        const enrollment = rows[0];
+        const enrollment = await enrollments_service_1.enrollmentService.getEnrollmentById(enrollmentId);
         if (!enrollment)
             return next(createHttpError(404, 'Enrollment not found'));
         res.status(200).json(enrollment);
@@ -104,14 +73,10 @@ const updateEnrollment = async (req, res, next) => {
     try {
         const { enrollmentId } = req.params;
         const { progress_percentage, status } = req.body;
-        const [updated] = await dbconfig_1.db
-            .update(schema_1.course_enrollments)
-            .set({
+        const updated = await enrollments_service_1.enrollmentService.updateEnrollment(enrollmentId, {
             progress_percentage: toNumber(progress_percentage),
             enrollment_status: status,
-        })
-            .where((0, drizzle_orm_1.eq)(schema_1.course_enrollments.enrollment_id, enrollmentId))
-            .returning();
+        });
         if (!updated)
             return next(createHttpError(404, 'Enrollment not found'));
         res.status(200).json(updated);
@@ -124,8 +89,8 @@ exports.updateEnrollment = updateEnrollment;
 const deleteEnrollment = async (req, res, next) => {
     try {
         const { enrollmentId } = req.params;
-        const result = await dbconfig_1.db.delete(schema_1.course_enrollments).where((0, drizzle_orm_1.eq)(schema_1.course_enrollments.enrollment_id, enrollmentId)).returning();
-        if (result.length === 0)
+        const deleted = await enrollments_service_1.enrollmentService.deleteEnrollment(enrollmentId);
+        if (!deleted)
             return next(createHttpError(404, 'Enrollment not found'));
         res.status(204).send();
     }
@@ -134,3 +99,26 @@ const deleteEnrollment = async (req, res, next) => {
     }
 };
 exports.deleteEnrollment = deleteEnrollment;
+// Admin endpoints for managing enrollments
+const getAllEnrollmentsAdmin = async (req, res, next) => {
+    var _a, _b;
+    try {
+        const auth = req.auth;
+        if (!auth) {
+            return next(createHttpError(401, 'Unauthorized'));
+        }
+        if (auth.role !== 'admin' && auth.role !== 'super_admin') {
+            return next(createHttpError(403, 'Forbidden: Admin access required'));
+        }
+        const page = Math.max(parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10) || 1, 1);
+        const limit = Math.max(parseInt(String((_b = req.query.limit) !== null && _b !== void 0 ? _b : '50'), 10) || 50, 1);
+        const userId = req.query.userId || undefined;
+        const courseId = req.query.courseId || undefined;
+        const result = await enrollments_service_1.enrollmentService.getEnrollments(page, limit, userId, courseId);
+        res.status(200).json(result);
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getAllEnrollmentsAdmin = getAllEnrollmentsAdmin;

@@ -10,7 +10,6 @@ import {
   boolean,
   timestamp,
   jsonb,
-  serial,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { InferModel } from "drizzle-orm";
@@ -192,7 +191,7 @@ export const users = pgTable(
     last_login: timestamp("last_login", { withTimezone: true }),
     is_active: boolean("is_active").default(true).notNull(),
   },
-  (table) => [
+  () => [
     // unique constraints
     // clerk_user_id optional unique
     // NOTE: Drizzle uniqueIndex helper is used as table-level indexes
@@ -753,6 +752,24 @@ export type SystemLog = InferModel<typeof system_logs>;
 export type NewSystemLog = InferModel<typeof system_logs, "insert">;
 
 /**
+ * ANNOUNCEMENTS
+ */
+export const announcements = pgTable("announcements", {
+  announcement_id: uuid("announcement_id").primaryKey().defaultRandom(),
+  title: varchar("title", { length: 512 }).notNull(),
+  content: text("content").notNull(),
+  created_by: uuid("created_by").notNull(),
+  is_active: boolean("is_active").default(true),
+  created_at: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updated_at: timestamp("updated_at", { withTimezone: true }),
+});
+
+export type Announcement = InferModel<typeof announcements>;
+export type NewAnnouncement = InferModel<typeof announcements, "insert">;
+
+/**
  * WEATHER_DATA
  */
 export const weather_data = pgTable("weather_data", {
@@ -964,6 +981,11 @@ export const systemLogsRelations = relations(system_logs, ({ one }) => ({
   user: one(users, { fields: [system_logs.user_id], references: [users.user_id] }),
 }));
 
+/* Announcements relations */
+export const announcementsRelations = relations(announcements, ({ one }) => ({
+  creator: one(users, { fields: [announcements.created_by], references: [users.user_id] }),
+}));
+
 /* Weather data relations */
 export const weatherDataRelations = relations(weather_data, ({ one }) => ({
   location: one(locations, { fields: [weather_data.location_id], references: [locations.location_id] }),
@@ -1001,6 +1023,7 @@ export {
   message_reactions as messageReactionsTable,
   user_reports as userReportsTable,
   system_logs as systemLogsTable,
+  announcements as announcementsTable,
   weather_data as weatherDataTable,
   // enums
   rolesEnum as roles_enum,

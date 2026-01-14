@@ -17,6 +17,10 @@ const app = (0, express_1.default)();
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)({ origin: true, credentials: true }));
 app.options('*', (0, cors_1.default)({ origin: true, credentials: true }));
+// IMPORTANT: Webhook route needs raw body for signature verification
+// Apply raw body parser ONLY to webhook routes before JSON parser
+app.use('/api/webhooks', express_1.default.raw({ type: 'application/json' }));
+// Apply JSON parser to all other routes
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
 // Logging - use morgan for simple combined logging

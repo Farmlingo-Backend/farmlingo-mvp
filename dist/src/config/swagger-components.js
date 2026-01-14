@@ -10,46 +10,115 @@ exports.swaggerComponents = {
         // === USERS ===
         User: {
             type: 'object',
+            description: 'User profile with Clerk authentication integration',
             properties: {
-                user_id: { type: 'string', format: 'uuid', example: '550e8400-e29b-41d4-a716-446655440000' },
-                clerk_user_id: { type: 'string', example: 'user_2abc3def' },
-                email: { type: 'string', format: 'email', example: 'jane@example.com' },
-                first_name: { type: 'string', example: 'Jane' },
-                last_name: { type: 'string', example: 'Doe' },
-                role: {
+                user_id: {
                     type: 'string',
-                    enum: ['student', 'farmer', 'admin', 'super_admin'],
-                    example: 'student'
+                    format: 'uuid',
+                    description: 'Unique user identifier (UUID)',
+                    example: '123e4567-e89b-12d3-a456-426614174000'
                 },
-                location_id: { type: 'string', format: 'uuid', nullable: true },
-                preferences: { type: 'object', nullable: true },
-                created_at: { type: 'string', format: 'date-time' },
-                updated_at: { type: 'string', format: 'date-time', nullable: true },
-                is_active: { type: 'boolean', example: true }
+                clerk_user_id: {
+                    type: 'string',
+                    description: 'Clerk authentication user ID',
+                    example: 'user_2abcdefghijklmnop',
+                    nullable: true
+                },
+                email: {
+                    type: 'string',
+                    format: 'email',
+                    description: 'User email address (unique)',
+                    example: 'john.doe@example.com'
+                },
+                first_name: {
+                    type: 'string',
+                    description: 'User first name',
+                    example: 'John',
+                    nullable: true
+                },
+                last_name: {
+                    type: 'string',
+                    description: 'User last name',
+                    example: 'Doe',
+                    nullable: true
+                },
+                image_url: {
+                    type: 'string',
+                    format: 'uri',
+                    description: 'User profile image URL from Clerk',
+                    example: 'https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18yYWJjM2RlZiJ9',
+                    nullable: true
+                },
+                created_at: {
+                    type: 'string',
+                    format: 'date-time',
+                    description: 'Account creation timestamp',
+                    example: '2025-12-11T00:00:00Z'
+                },
+                updated_at: {
+                    type: 'string',
+                    format: 'date-time',
+                    description: 'Last profile update timestamp',
+                    example: '2025-12-11T03:10:00Z',
+                    nullable: true
+                },
+                last_login: {
+                    type: 'string',
+                    format: 'date-time',
+                    description: 'Last successful login timestamp',
+                    example: '2025-12-12T22:30:00Z',
+                    nullable: true
+                },
+                is_active: {
+                    type: 'boolean',
+                    description: 'Account active status',
+                    example: true
+                }
             }
         },
         NewUser: {
             type: 'object',
             required: ['email'],
+            description: 'Schema for creating a new user',
             properties: {
-                clerk_user_id: { type: 'string', example: 'user_2abc3def' },
-                email: { type: 'string', format: 'email', example: 'jane@example.com' },
-                first_name: { type: 'string', example: 'Jane' },
-                last_name: { type: 'string', example: 'Doe' },
-                role: {
+                clerk_user_id: {
                     type: 'string',
-                    enum: ['student', 'farmer', 'admin', 'super_admin'],
-                    example: 'student'
+                    description: 'Clerk authentication user ID',
+                    example: 'user_2abcdefghijklmnop',
+                    nullable: true
                 },
-                location_id: { type: 'string', format: 'uuid', nullable: true },
-                preferences: { type: 'object', nullable: true }
+                email: {
+                    type: 'string',
+                    format: 'email',
+                    description: 'User email address (must be unique)',
+                    example: 'john.doe@example.com'
+                },
+                first_name: {
+                    type: 'string',
+                    description: 'User first name',
+                    example: 'John',
+                    nullable: true
+                },
+                last_name: {
+                    type: 'string',
+                    description: 'User last name',
+                    example: 'Doe',
+                    nullable: true
+                },
+                image_url: {
+                    type: 'string',
+                    format: 'uri',
+                    description: 'User profile image URL',
+                    example: 'https://img.clerk.com/profile.jpg',
+                    nullable: true
+                }
             }
         },
         UserLoginRequest: {
             type: 'object',
             properties: {
-                clerk_user_id: { type: 'string', example: 'user_2abc3def' },
-                email: { type: 'string', format: 'email', example: 'jane@example.com' }
+                clerk_user_id: { type: 'string', example: 'user_36g1OXgY7VKtg' },
+                email: { type: 'string', format: 'email', example: 'bogikam587@alexida.com' }
             },
             description: 'Provide either clerk_user_id or email to log in.'
         },

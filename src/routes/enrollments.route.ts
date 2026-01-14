@@ -6,7 +6,8 @@ import {
   createEnrollment,
   getEnrollmentById,
   updateEnrollment,
-  deleteEnrollment
+  deleteEnrollment,
+  getAllEnrollmentsAdmin
 } from '../controllers/enrollments.controller';
 
 const router = Router();
@@ -96,3 +97,6 @@ router.post('/', clerkAuth, upload.none(), createEnrollment);
 router.get('/:enrollmentId', getEnrollmentById);
 router.put('/:enrollmentId', clerkAuth, upload.none(), updateEnrollment);
 router.delete('/:enrollmentId', clerkAuth, deleteEnrollment);
+
+// Admin endpoints
+router.get('/admin/all', clerkAuth, getAllEnrollmentsAdmin);

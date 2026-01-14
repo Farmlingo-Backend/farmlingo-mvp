@@ -24,7 +24,10 @@ const swaggerDefinition = {
         { name: 'Lessons', description: 'Lessons Routes (lessons.route.ts)' },
         { name: 'Enrollments', description: 'Enrollments Routes (enrollments.route.ts)' },
         { name: 'Forums', description: 'Forums Routes (forums.route.ts)' },
-        { name: 'Chat', description: 'Chat Routes (chat.route.ts)' }
+        { name: 'Chat', description: 'Chat Routes (chat.route.ts)' },
+        { name: 'Chats', description: 'Direct Messaging Routes (chats.route.ts)' },
+        { name: 'Announcements', description: 'Announcements Routes (announcements.route.ts)' },
+        { name: 'Admin', description: 'Admin Dashboard and Management Routes (admin.route.ts)' }
     ],
     servers: [
         {

@@ -134,3 +134,32 @@ export const deleteLesson = async (
     next(err as Error);
   }
 };
+
+// Admin endpoints for managing lessons
+export const getAllLessonsAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const auth = req.auth;
+
+    if (!auth) {
+      return next(createHttpError(401, 'Unauthorized'));
+    }
+
+    if (auth.role !== 'admin' && auth.role !== 'super_admin') {
+      return next(createHttpError(403, 'Forbidden: Admin access required'));
+    }
+
+    const page = Math.max(parseInt(String(req.query.page ?? '1'), 10) || 1, 1);
+    const limit = Math.max(parseInt(String(req.query.limit ?? '50'), 10) || 50, 1);
+    const courseId = (req.query.courseId as string | undefined) || undefined;
+
+    const result = await lessonService.getLessons(page, limit, courseId);
+
+    res.status(200).json(result);
+  } catch (err) {
+    next(err as Error);
+  }
+};

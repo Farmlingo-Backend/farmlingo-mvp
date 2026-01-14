@@ -13,6 +13,18 @@ const createHttpError = (status: number, message: string): HttpError => {
     return err;
 };
 
+interface ClerkWebhookPayload {
+    type: string;
+    data: {
+        id: string;
+        email_addresses?: Array<{ email_address: string }>;
+        first_name?: string;
+        last_name?: string;
+        image_url?: string;
+        phone_numbers?: Array<{ phone_number: string }>;
+    };
+}
+
 /**
  * Handle incoming Clerk webhook events
  * Verifies webhook signature and processes user events
@@ -24,7 +36,7 @@ export const handleClerkWebhook = async (
 ): Promise<void> => {
     try {
         // Get the raw body (must be preserved for signature verification)
-        const payload = req.body;
+        const payload = req.body as string | Buffer;
 
         // Get Svix headers for verification
         const svixId = req.headers['svix-id'] as string;
@@ -46,7 +58,7 @@ export const handleClerkWebhook = async (
         // Create Svix webhook instance
         const wh = new Webhook(clerkWebhookSecret);
 
-        let evt: any;
+        let evt: ClerkWebhookPayload;
 
         try {
             // Verify the webhook signature
@@ -54,7 +66,7 @@ export const handleClerkWebhook = async (
                 'svix-id': svixId,
                 'svix-timestamp': svixTimestamp,
                 'svix-signature': svixSignature,
-            });
+            }) as ClerkWebhookPayload;
         } catch (err) {
             console.error('Webhook verification failed:', err);
             return next(createHttpError(400, 'Invalid webhook signature'));
@@ -63,11 +75,6 @@ export const handleClerkWebhook = async (
         // Extract event type and data
         const eventType = evt.type;
         const eventData = evt.data;
-
-        console.log(`Received webhook event: ${eventType}`, {
-            id: eventData.id,
-            email: eventData.email_addresses?.[0]?.email_address
-        });
 
         // Handle different event types
         switch (eventType) {
@@ -83,7 +90,11 @@ export const handleClerkWebhook = async (
                 break;
 
             default:
-                console.log(`Unhandled webhook event type: ${eventType}`);
+                // Log unhandled webhook event type for monitoring
+                console.warn(`Unhandled webhook event type: ${eventType}`, {
+                    eventType,
+                    eventId: eventData.id
+                });
         }
 
         // Return success response
@@ -97,19 +108,28 @@ export const handleClerkWebhook = async (
     }
 };
 
+interface ClerkUserData {
+    id: string;
+    email_addresses?: Array<{ email_address: string }>;
+    first_name?: string;
+    last_name?: string;
+    image_url?: string;
+    phone_numbers?: Array<{ phone_number: string }>;
+}
+
 /**
  * Handle user.created and user.updated events
  * Syncs user data to the database
  */
-async function handleUserSync(userData: any): Promise<void> {
+async function handleUserSync(userData: ClerkUserData): Promise<void> {
     try {
         const payload = {
             id: userData.id,
-            email: userData.email_addresses?.[0]?.email_address || '',
-            firstName: userData.first_name || '',
-            lastName: userData.last_name || '',
-            imageUrl: userData.image_url || '',
-            phoneNumber: userData.phone_numbers?.[0]?.phone_number || '',
+            email: userData.email_addresses?.[0]?.email_address ?? '',
+            firstName: userData.first_name ?? '',
+            lastName: userData.last_name ?? '',
+            imageUrl: userData.image_url ?? '',
+            phoneNumber: userData.phone_numbers?.[0]?.phone_number ?? '',
         };
 
         // Validate required fields
@@ -120,18 +140,21 @@ async function handleUserSync(userData: any): Promise<void> {
 
         // Sync user to database
         const user = await userService.syncClerkProfile(payload);
-        console.log(`User synced successfully: ${user.user_id}`);
     } catch (err) {
         console.error('Error syncing user:', err);
         throw err;
     }
 }
 
+interface ClerkUserDeletionData {
+    id: string;
+}
+
 /**
  * Handle user.deleted events
  * Soft deletes user from the database
  */
-async function handleUserDeletion(userData: any): Promise<void> {
+async function handleUserDeletion(userData: ClerkUserDeletionData): Promise<void> {
     try {
         const clerkUserId = userData.id;
 
@@ -142,7 +165,6 @@ async function handleUserDeletion(userData: any): Promise<void> {
 
         // Soft delete user
         await userService.deleteUser(clerkUserId);
-        console.log(`User deleted successfully: ${clerkUserId}`);
     } catch (err) {
         console.error('Error deleting user:', err);
         throw err;

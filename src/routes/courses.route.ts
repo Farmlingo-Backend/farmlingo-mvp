@@ -6,7 +6,8 @@ import {
   createCourse,
   getCourseById,
   updateCourse,
-  deleteCourse
+  deleteCourse,
+  getAllCoursesAdmin
 } from '../controllers/courses.controller';
 
 const router = Router();
@@ -203,3 +204,6 @@ router.post('/', authenticate, upload.none(), createCourse);
 router.get('/:courseId', getCourseById);
 router.put('/:courseId', authenticate, upload.none(), updateCourse);
 router.delete('/:courseId', authenticate, deleteCourse);
+
+// Admin endpoints
+router.get('/admin/all', authenticate, getAllCoursesAdmin);

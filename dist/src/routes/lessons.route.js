@@ -204,3 +204,5 @@ router.post('/', auth_1.authenticate, upload.none(), lessons_controller_1.create
 router.get('/:lessonId', lessons_controller_1.getLessonById);
 router.put('/:lessonId', auth_1.authenticate, upload.none(), lessons_controller_1.updateLesson);
 router.delete('/:lessonId', auth_1.authenticate, lessons_controller_1.deleteLesson);
+// Admin endpoints
+router.get('/admin/all', auth_1.authenticate, lessons_controller_1.getAllLessonsAdmin);

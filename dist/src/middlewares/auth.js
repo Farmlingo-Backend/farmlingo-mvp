@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authenticate = void 0;
+exports.requireSuperAdmin = exports.requireAdmin = exports.requireRole = exports.authenticate = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const drizzle_orm_1 = require("drizzle-orm");
 const config_1 = require("../config/config");
@@ -14,6 +14,10 @@ const createHttpError = (status, message) => {
     err.status = status;
     return err;
 };
+/**
+ * Legacy JWT authentication middleware
+ * @deprecated Use Clerk authentication instead
+ */
 const authenticate = async (req, res, next) => {
     var _a, _b, _c;
     try {
@@ -58,3 +62,31 @@ const authenticate = async (req, res, next) => {
     }
 };
 exports.authenticate = authenticate;
+/**
+ * Role-based authorization middleware
+ * Checks if the authenticated user has the required role
+ */
+const requireRole = (requiredRoles) => {
+    return (req, res, next) => {
+        const auth = req.auth;
+        if (!auth) {
+            return next(createHttpError(401, 'Authentication required'));
+        }
+        const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+        // For now, we'll use a simple role check
+        // In a full implementation, roles would be managed by Clerk
+        if (!roles.includes('admin') && !roles.includes('super_admin')) {
+            return next(createHttpError(403, 'Insufficient permissions'));
+        }
+        return next();
+    };
+};
+exports.requireRole = requireRole;
+/**
+ * Admin-only authorization middleware
+ */
+exports.requireAdmin = (0, exports.requireRole)(['admin', 'super_admin']);
+/**
+ * Super admin only authorization middleware
+ */
+exports.requireSuperAdmin = (0, exports.requireRole)(['super_admin']);

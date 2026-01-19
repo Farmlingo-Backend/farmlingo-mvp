@@ -550,6 +550,398 @@ const upload = (0, multer_1.default)({ dest: 'uploads/chat/' });
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ApiError'
+ *
+ * /chatrooms/{chatroomId}/members:
+ *   post:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Add a member to chatroom
+ *     description: Add a new member to the chatroom (Admin only).
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user_id
+ *             properties:
+ *               user_id:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID of the user to add
+ *               role:
+ *                 type: string
+ *                 enum: [admin, moderator, member]
+ *                 default: member
+ *                 description: Role of the new member
+ *     responses:
+ *       '201':
+ *         description: Member added successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ChatroomMember'
+ *       '400':
+ *         description: Bad request - Invalid input data or user already member.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '403':
+ *         description: Forbidden - Not authorized to add members.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /chatrooms/{chatroomId}/members:
+ *   get:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Get chatroom members
+ *     description: Retrieve list of active members in a chatroom.
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *     responses:
+ *       '200':
+ *         description: Members retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ChatroomMember'
+ *
+ * /chatrooms/{chatroomId}/invite:
+ *   post:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Invite a user to chatroom
+ *     description: Send an invitation to a user or email (Admin only).
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_id:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID of the user to invite
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email to invite
+ *               message:
+ *                 type: string
+ *                 description: Optional invitation message
+ *     responses:
+ *       '201':
+ *         description: Invitation sent successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ChatroomInvitation'
+ *       '400':
+ *         description: Bad request - Invalid input or user already invited/member.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '403':
+ *         description: Forbidden - Not authorized to invite members.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /chatrooms/{chatroomId}/join:
+ *   post:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Request to join chatroom
+ *     description: Submit a join request for a chatroom that requires approval.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 description: Optional message with the request
+ *     responses:
+ *       '201':
+ *         description: Join request submitted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MembershipRequest'
+ *       '400':
+ *         description: Bad request - Already member or pending request.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '403':
+ *         description: Forbidden - Banned from chatroom.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /chatrooms/{chatroomId}/requests/{requestId}/approve:
+ *   post:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Approve join request
+ *     description: Approve a pending join request (Admin only).
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the join request
+ *     responses:
+ *       '200':
+ *         description: Request approved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       '403':
+ *         description: Forbidden - Not authorized to approve requests.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '404':
+ *         description: Request not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /chatrooms/{chatroomId}/requests/{requestId}/reject:
+ *   post:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Reject join request
+ *     description: Reject a pending join request (Admin only).
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the join request
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 description: Optional rejection reason
+ *     responses:
+ *       '200':
+ *         description: Request rejected successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       '403':
+ *         description: Forbidden - Not authorized to reject requests.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '404':
+ *         description: Request not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /chatrooms/{chatroomId}/members/{userId}:
+ *   delete:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Remove member from chatroom
+ *     description: Remove a member from the chatroom (Admin only).
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the user to remove
+ *     responses:
+ *       '200':
+ *         description: Member removed successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       '403':
+ *         description: Forbidden - Not authorized to remove members.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '404':
+ *         description: Member not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *
+ * /chatrooms/{chatroomId}/members/{userId}/role:
+ *   put:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Change member role
+ *     description: Change the role of a chatroom member (Admin only).
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the user whose role to change
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - role
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 enum: [admin, moderator, member]
+ *                 description: New role for the member
+ *     responses:
+ *       '200':
+ *         description: Role updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       '400':
+ *         description: Bad request - Invalid role.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '403':
+ *         description: Forbidden - Not authorized to change roles.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '404':
+ *         description: Member not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
  */
 exports.default = router;
 // Runtime endpoints
@@ -558,6 +950,14 @@ router.post('/', clerk_1.clerkAuth, upload.none(), chat_controller_1.createChatr
 router.get('/:chatroomId', chat_controller_1.getChatroomById);
 router.put('/:chatroomId', clerk_1.clerkAuth, upload.none(), chat_controller_1.updateChatroom);
 router.delete('/:chatroomId', clerk_1.clerkAuth, chat_controller_1.deleteChatroom);
+router.get('/:chatroomId/members', chat_controller_1.getChatroomMembers);
+router.post('/:chatroomId/members', clerk_1.clerkAuth, upload.none(), chat_controller_1.addChatroomMember);
+router.post('/:chatroomId/invite', clerk_1.clerkAuth, upload.none(), chat_controller_1.inviteMember);
+router.post('/:chatroomId/join', clerk_1.clerkAuth, upload.none(), chat_controller_1.requestJoin);
+router.post('/:chatroomId/requests/:requestId/approve', clerk_1.clerkAuth, upload.none(), chat_controller_1.approveJoinRequest);
+router.post('/:chatroomId/requests/:requestId/reject', clerk_1.clerkAuth, upload.none(), chat_controller_1.rejectJoinRequest);
+router.delete('/:chatroomId/members/:userId', clerk_1.clerkAuth, chat_controller_1.removeChatroomMember);
+router.put('/:chatroomId/members/:userId/role', clerk_1.clerkAuth, upload.none(), chat_controller_1.changeMemberRole);
 router.get('/:chatroomId/messages', chat_controller_1.getChatMessages);
 router.post('/:chatroomId/messages', clerk_1.clerkAuth, upload.none(), chat_controller_1.createChatMessage);
 // Message management endpoints
@@ -566,6 +966,7 @@ router.delete('/:chatroomId/messages/:messageId', clerk_1.clerkAuth, chat_contro
 router.post('/:chatroomId/messages/:messageId/reactions', clerk_1.clerkAuth, chat_controller_1.addMessageReaction);
 router.get('/:chatroomId/search', clerk_1.clerkAuth, chat_controller_1.searchMessages);
 router.get('/:chatroomId/history', clerk_1.clerkAuth, chat_controller_1.getMessageHistory);
+router.delete('/:chatroomId/clear-history', clerk_1.clerkAuth, chat_controller_1.clearChatHistory);
 // Admin endpoints
 router.get('/admin/all', clerk_1.clerkAuth, chat_controller_1.getAllChatroomsAdmin);
 router.get('/admin/messages/all', clerk_1.clerkAuth, chat_controller_1.getAllChatMessagesAdmin);

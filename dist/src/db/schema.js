@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.system_logs = exports.user_reports = exports.message_reactions = exports.message_read_status = exports.message_attachments = exports.chat_messages = exports.chatroom_members = exports.chatrooms = exports.post_read_status = exports.post_reactions = exports.comments = exports.forum_posts = exports.forums = exports.quiz_answers = exports.quiz_attempts = exports.question_options = exports.quiz_questions = exports.quizzes = exports.lesson_media = exports.course_certificates = exports.lesson_progress = exports.course_enrollments = exports.lessons = exports.course_ratings = exports.courses = exports.locations = exports.users = exports.logLevelEnum = exports.moduleEnum = exports.actionTypeEnum = exports.actionTakenEnum = exports.reportStatusEnum = exports.reportTypeEnum = exports.attachmentFileTypeEnum = exports.messageTypeEnum = exports.chatMemberStatusEnum = exports.chatMemberRoleEnum = exports.chatroomStatusEnum = exports.chatroomTypeEnum = exports.reactionTypeEnum = exports.commentStatusEnum = exports.forumStatusEnum = exports.quizAttemptStatusEnum = exports.quizQuestionTypeEnum = exports.mediaTypeEnum = exports.lessonProgressStatusEnum = exports.enrollmentStatusEnum = exports.lessonStatusEnum = exports.courseStatusEnum = exports.rolesEnum = void 0;
-exports.chatroomsTable = exports.postReadStatusTable = exports.postReactionsTable = exports.commentsTable = exports.forumPostsTable = exports.forumsTable = exports.quizAnswersTable = exports.quizAttemptsTable = exports.questionOptionsTable = exports.quizQuestionsTable = exports.quizzesTable = exports.lessonMediaTable = exports.courseCertificatesTable = exports.lessonProgressTable = exports.courseEnrollmentsTable = exports.lessonsTable = exports.courseRatingsTable = exports.coursesTable = exports.locationsTable = exports.usersTable = exports.weatherDataRelations = exports.announcementsRelations = exports.systemLogsRelations = exports.userReportsRelations = exports.messageReactionsRelations = exports.messageReadStatusRelations = exports.messageAttachmentsRelations = exports.chatMessagesRelations = exports.chatroomMembersRelations = exports.chatroomsRelations = exports.postReadStatusRelations = exports.postReactionsRelations = exports.commentsRelations = exports.forumPostsRelations = exports.forumsRelations = exports.quizAnswersRelations = exports.quizAttemptsRelations = exports.questionOptionsRelations = exports.quizQuestionsRelations = exports.quizzesRelations = exports.lessonMediaRelations = exports.courseCertificatesRelations = exports.lessonProgressRelations = exports.courseEnrollmentsRelations = exports.lessonsRelations = exports.coursesRelations = exports.locationsRelations = exports.usersRelations = exports.weather_data = exports.announcements = void 0;
-exports.log_level_enum = exports.module_enum = exports.action_type_enum = exports.action_taken_enum = exports.report_status_enum = exports.report_type_enum = exports.attachment_file_type_enum = exports.message_type_enum = exports.chat_member_status_enum = exports.chat_member_role_enum = exports.chatroom_status_enum = exports.chatroom_type_enum = exports.reaction_type_enum = exports.comment_status_enum = exports.forum_status_enum = exports.quiz_attempt_status_enum = exports.quiz_question_type_enum = exports.media_type_enum = exports.lesson_progress_status_enum = exports.enrollment_status_enum = exports.lesson_status_enum = exports.course_status_enum = exports.roles_enum = exports.weatherDataTable = exports.announcementsTable = exports.systemLogsTable = exports.userReportsTable = exports.messageReactionsTable = exports.messageReadStatusTable = exports.messageAttachmentsTable = exports.chatMessagesTable = exports.chatroomMembersTable = void 0;
+exports.message_attachments = exports.chat_messages = exports.chatroom_members = exports.chatrooms = exports.post_read_status = exports.post_reactions = exports.comments = exports.forum_posts = exports.forums = exports.quiz_answers = exports.quiz_attempts = exports.question_options = exports.quiz_questions = exports.quizzes = exports.lesson_media = exports.course_certificates = exports.lesson_progress = exports.course_enrollments = exports.lessons = exports.course_ratings = exports.courses = exports.locations = exports.users = exports.logLevelEnum = exports.moduleEnum = exports.notificationTypeEnum = exports.membershipActionEnum = exports.invitationStatusEnum = exports.membershipRequestStatusEnum = exports.actionTypeEnum = exports.actionTakenEnum = exports.reportStatusEnum = exports.reportTypeEnum = exports.attachmentFileTypeEnum = exports.messageTypeEnum = exports.chatMemberStatusEnum = exports.chatMemberRoleEnum = exports.chatroomStatusEnum = exports.chatroomTypeEnum = exports.reactionTypeEnum = exports.commentStatusEnum = exports.forumStatusEnum = exports.quizAttemptStatusEnum = exports.quizQuestionTypeEnum = exports.mediaTypeEnum = exports.lessonProgressStatusEnum = exports.enrollmentStatusEnum = exports.lessonStatusEnum = exports.courseStatusEnum = exports.rolesEnum = void 0;
+exports.courseCertificatesTable = exports.lessonProgressTable = exports.courseEnrollmentsTable = exports.lessonsTable = exports.courseRatingsTable = exports.coursesTable = exports.locationsTable = exports.usersTable = exports.weatherDataRelations = exports.announcementsRelations = exports.systemLogsRelations = exports.userReportsRelations = exports.notificationsRelations = exports.chatroomInvitationsRelations = exports.membershipLogsRelations = exports.membershipRequestsRelations = exports.messageReactionsRelations = exports.messageReadStatusRelations = exports.messageAttachmentsRelations = exports.chatMessagesRelations = exports.chatroomMembersRelations = exports.chatroomsRelations = exports.postReadStatusRelations = exports.postReactionsRelations = exports.commentsRelations = exports.forumPostsRelations = exports.forumsRelations = exports.quizAnswersRelations = exports.quizAttemptsRelations = exports.questionOptionsRelations = exports.quizQuestionsRelations = exports.quizzesRelations = exports.lessonMediaRelations = exports.courseCertificatesRelations = exports.lessonProgressRelations = exports.courseEnrollmentsRelations = exports.lessonsRelations = exports.coursesRelations = exports.locationsRelations = exports.usersRelations = exports.notifications = exports.chatroom_invitations = exports.membership_logs = exports.membership_requests = exports.weather_data = exports.announcements = exports.system_logs = exports.user_reports = exports.message_reactions = exports.message_read_status = void 0;
+exports.invitation_status_enum = exports.membership_request_status_enum = exports.log_level_enum = exports.module_enum = exports.action_type_enum = exports.action_taken_enum = exports.report_status_enum = exports.report_type_enum = exports.attachment_file_type_enum = exports.message_type_enum = exports.chat_member_status_enum = exports.chat_member_role_enum = exports.chatroom_status_enum = exports.chatroom_type_enum = exports.reaction_type_enum = exports.comment_status_enum = exports.forum_status_enum = exports.quiz_attempt_status_enum = exports.quiz_question_type_enum = exports.media_type_enum = exports.lesson_progress_status_enum = exports.enrollment_status_enum = exports.lesson_status_enum = exports.course_status_enum = exports.roles_enum = exports.weatherDataTable = exports.announcementsTable = exports.systemLogsTable = exports.userReportsTable = exports.notificationsTable = exports.chatroomInvitationsTable = exports.membershipLogsTable = exports.membershipRequestsTable = exports.messageReactionsTable = exports.messageReadStatusTable = exports.messageAttachmentsTable = exports.chatMessagesTable = exports.chatroomMembersTable = exports.chatroomsTable = exports.postReadStatusTable = exports.postReactionsTable = exports.commentsTable = exports.forumPostsTable = exports.forumsTable = exports.quizAnswersTable = exports.quizAttemptsTable = exports.questionOptionsTable = exports.quizQuestionsTable = exports.quizzesTable = exports.lessonMediaTable = void 0;
+exports.notification_type_enum = exports.membership_action_enum = void 0;
 // src/db/schema.ts
 const pg_core_1 = require("drizzle-orm/pg-core");
 const drizzle_orm_1 = require("drizzle-orm");
@@ -144,6 +145,41 @@ exports.actionTypeEnum = (0, pg_core_1.pgEnum)("action_type", [
     "admin_action",
 ]);
 exports.action_type_enum = exports.actionTypeEnum;
+exports.membershipRequestStatusEnum = (0, pg_core_1.pgEnum)("membership_request_status", [
+    "pending",
+    "approved",
+    "rejected",
+    "cancelled",
+]);
+exports.membership_request_status_enum = exports.membershipRequestStatusEnum;
+exports.invitationStatusEnum = (0, pg_core_1.pgEnum)("invitation_status", [
+    "pending",
+    "accepted",
+    "expired",
+    "cancelled",
+]);
+exports.invitation_status_enum = exports.invitationStatusEnum;
+exports.membershipActionEnum = (0, pg_core_1.pgEnum)("membership_action", [
+    "join",
+    "leave",
+    "added",
+    "removed",
+    "role_changed",
+    "banned",
+    "unbanned",
+]);
+exports.membership_action_enum = exports.membershipActionEnum;
+exports.notificationTypeEnum = (0, pg_core_1.pgEnum)("notification_type", [
+    "message",
+    "member_join",
+    "member_leave",
+    "member_added",
+    "member_removed",
+    "invitation",
+    "request_approved",
+    "request_rejected",
+]);
+exports.notification_type_enum = exports.notificationTypeEnum;
 exports.moduleEnum = (0, pg_core_1.pgEnum)("module_type", [
     "auth",
     "forum",
@@ -520,6 +556,8 @@ exports.chatrooms = (0, pg_core_1.pgTable)("chatrooms", {
     avatar_url: (0, pg_core_1.varchar)("avatar_url", { length: 1000 }),
     created_by: (0, pg_core_1.uuid)("created_by"),
     member_count: (0, pg_core_1.integer)("member_count").default(0),
+    max_members: (0, pg_core_1.integer)("max_members"), // null means unlimited
+    require_approval: (0, pg_core_1.boolean)("require_approval").default(false),
     last_message_id: (0, pg_core_1.uuid)("last_message_id"),
     last_activity: (0, pg_core_1.timestamp)("last_activity", { withTimezone: true }),
     settings: (0, pg_core_1.jsonb)("settings"),
@@ -539,6 +577,7 @@ exports.chatroom_members = (0, pg_core_1.pgTable)("chatroom_members", {
     user_id: (0, pg_core_1.uuid)("user_id").notNull(),
     role: (0, exports.chatMemberRoleEnum)("role").default("member"),
     permissions: (0, pg_core_1.jsonb)("permissions"),
+    invited_by: (0, pg_core_1.uuid)("invited_by"), // who invited this member
     joined_at: (0, pg_core_1.timestamp)("joined_at", { withTimezone: true }).defaultNow(),
     last_read_at: (0, pg_core_1.timestamp)("last_read_at", { withTimezone: true }),
     unread_count: (0, pg_core_1.integer)("unread_count").default(0),
@@ -683,6 +722,75 @@ exports.weather_data = (0, pg_core_1.pgTable)("weather_data", {
 });
 exports.weatherDataTable = exports.weather_data;
 /**
+ * MEMBERSHIP_REQUESTS
+ */
+exports.membership_requests = (0, pg_core_1.pgTable)("membership_requests", {
+    request_id: (0, pg_core_1.uuid)("request_id").primaryKey().defaultRandom(),
+    chatroom_id: (0, pg_core_1.uuid)("chatroom_id").notNull(),
+    user_id: (0, pg_core_1.uuid)("user_id").notNull(),
+    requested_by: (0, pg_core_1.uuid)("requested_by"), // null if user self-requested
+    message: (0, pg_core_1.text)("message"),
+    status: (0, exports.membershipRequestStatusEnum)("status").default("pending"),
+    reviewed_by: (0, pg_core_1.uuid)("reviewed_by"),
+    reviewed_at: (0, pg_core_1.timestamp)("reviewed_at", { withTimezone: true }),
+    response_message: (0, pg_core_1.text)("response_message"),
+    created_at: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow(),
+    updated_at: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }),
+});
+exports.membershipRequestsTable = exports.membership_requests;
+/**
+ * MEMBERSHIP_LOGS
+ */
+exports.membership_logs = (0, pg_core_1.pgTable)("membership_logs", {
+    log_id: (0, pg_core_1.uuid)("log_id").primaryKey().defaultRandom(),
+    chatroom_id: (0, pg_core_1.uuid)("chatroom_id").notNull(),
+    user_id: (0, pg_core_1.uuid)("user_id").notNull(),
+    action: (0, exports.membershipActionEnum)("action").notNull(),
+    performed_by: (0, pg_core_1.uuid)("performed_by"), // who performed the action (null for self-actions)
+    old_value: (0, pg_core_1.jsonb)("old_value"), // previous state (role, etc.)
+    new_value: (0, pg_core_1.jsonb)("new_value"), // new state (role, etc.)
+    reason: (0, pg_core_1.text)("reason"), // optional reason for the action
+    metadata: (0, pg_core_1.jsonb)("metadata"), // additional context
+    created_at: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow(),
+});
+exports.membershipLogsTable = exports.membership_logs;
+/**
+ * CHATROOM_INVITATIONS
+ */
+exports.chatroom_invitations = (0, pg_core_1.pgTable)("chatroom_invitations", {
+    invitation_id: (0, pg_core_1.uuid)("invitation_id").primaryKey().defaultRandom(),
+    chatroom_id: (0, pg_core_1.uuid)("chatroom_id").notNull(),
+    invited_user_id: (0, pg_core_1.uuid)("invited_user_id"),
+    invited_email: (0, pg_core_1.varchar)("invited_email", { length: 320 }),
+    invitation_code: (0, pg_core_1.varchar)("invitation_code", { length: 64 }).notNull().unique(),
+    invited_by: (0, pg_core_1.uuid)("invited_by").notNull(),
+    expires_at: (0, pg_core_1.timestamp)("expires_at", { withTimezone: true }),
+    status: (0, exports.invitationStatusEnum)("status").default("pending"),
+    accepted_at: (0, pg_core_1.timestamp)("accepted_at", { withTimezone: true }),
+    message: (0, pg_core_1.text)("message"),
+    created_at: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow(),
+    updated_at: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }),
+});
+exports.chatroomInvitationsTable = exports.chatroom_invitations;
+/**
+ * NOTIFICATIONS
+ */
+exports.notifications = (0, pg_core_1.pgTable)("notifications", {
+    notification_id: (0, pg_core_1.uuid)("notification_id").primaryKey().defaultRandom(),
+    user_id: (0, pg_core_1.uuid)("user_id").notNull(),
+    type: (0, exports.notificationTypeEnum)("type").notNull(),
+    title: (0, pg_core_1.varchar)("title", { length: 256 }).notNull(),
+    message: (0, pg_core_1.text)("message").notNull(),
+    related_chatroom_id: (0, pg_core_1.uuid)("related_chatroom_id"),
+    related_user_id: (0, pg_core_1.uuid)("related_user_id"),
+    related_message_id: (0, pg_core_1.uuid)("related_message_id"),
+    metadata: (0, pg_core_1.jsonb)("metadata"),
+    is_read: (0, pg_core_1.boolean)("is_read").default(false),
+    read_at: (0, pg_core_1.timestamp)("read_at", { withTimezone: true }),
+    created_at: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow(),
+});
+exports.notificationsTable = exports.notifications;
+/**
  * RELATIONS
  *
  * We add relations for main entities so Drizzle's `relations()` helper
@@ -807,11 +915,15 @@ exports.chatroomsRelations = (0, drizzle_orm_1.relations)(exports.chatrooms, ({ 
     creator: one(exports.users, { fields: [exports.chatrooms.created_by], references: [exports.users.user_id] }),
     members: many(exports.chatroom_members),
     messages: many(exports.chat_messages),
+    membershipRequests: many(exports.membership_requests),
+    membershipLogs: many(exports.membership_logs),
+    invitations: many(exports.chatroom_invitations),
 }));
 /* Chatroom members relations */
 exports.chatroomMembersRelations = (0, drizzle_orm_1.relations)(exports.chatroom_members, ({ one }) => ({
     chatroom: one(exports.chatrooms, { fields: [exports.chatroom_members.chatroom_id], references: [exports.chatrooms.chatroom_id] }),
     user: one(exports.users, { fields: [exports.chatroom_members.user_id], references: [exports.users.user_id] }),
+    invitedBy: one(exports.users, { fields: [exports.chatroom_members.invited_by], references: [exports.users.user_id] }),
 }));
 /* Chat messages relations */
 exports.chatMessagesRelations = (0, drizzle_orm_1.relations)(exports.chat_messages, ({ one, many }) => ({
@@ -835,6 +947,32 @@ exports.messageReadStatusRelations = (0, drizzle_orm_1.relations)(exports.messag
 exports.messageReactionsRelations = (0, drizzle_orm_1.relations)(exports.message_reactions, ({ one }) => ({
     message: one(exports.chat_messages, { fields: [exports.message_reactions.message_id], references: [exports.chat_messages.message_id] }),
     user: one(exports.users, { fields: [exports.message_reactions.user_id], references: [exports.users.user_id] }),
+}));
+/* Membership requests relations */
+exports.membershipRequestsRelations = (0, drizzle_orm_1.relations)(exports.membership_requests, ({ one }) => ({
+    chatroom: one(exports.chatrooms, { fields: [exports.membership_requests.chatroom_id], references: [exports.chatrooms.chatroom_id] }),
+    user: one(exports.users, { fields: [exports.membership_requests.user_id], references: [exports.users.user_id] }),
+    requestedBy: one(exports.users, { fields: [exports.membership_requests.requested_by], references: [exports.users.user_id] }),
+    reviewedBy: one(exports.users, { fields: [exports.membership_requests.reviewed_by], references: [exports.users.user_id] }),
+}));
+/* Membership logs relations */
+exports.membershipLogsRelations = (0, drizzle_orm_1.relations)(exports.membership_logs, ({ one }) => ({
+    chatroom: one(exports.chatrooms, { fields: [exports.membership_logs.chatroom_id], references: [exports.chatrooms.chatroom_id] }),
+    user: one(exports.users, { fields: [exports.membership_logs.user_id], references: [exports.users.user_id] }),
+    performedBy: one(exports.users, { fields: [exports.membership_logs.performed_by], references: [exports.users.user_id] }),
+}));
+/* Chatroom invitations relations */
+exports.chatroomInvitationsRelations = (0, drizzle_orm_1.relations)(exports.chatroom_invitations, ({ one }) => ({
+    chatroom: one(exports.chatrooms, { fields: [exports.chatroom_invitations.chatroom_id], references: [exports.chatrooms.chatroom_id] }),
+    invitedUser: one(exports.users, { fields: [exports.chatroom_invitations.invited_user_id], references: [exports.users.user_id] }),
+    invitedBy: one(exports.users, { fields: [exports.chatroom_invitations.invited_by], references: [exports.users.user_id] }),
+}));
+/* Notifications relations */
+exports.notificationsRelations = (0, drizzle_orm_1.relations)(exports.notifications, ({ one }) => ({
+    user: one(exports.users, { fields: [exports.notifications.user_id], references: [exports.users.user_id] }),
+    relatedChatroom: one(exports.chatrooms, { fields: [exports.notifications.related_chatroom_id], references: [exports.chatrooms.chatroom_id] }),
+    relatedUser: one(exports.users, { fields: [exports.notifications.related_user_id], references: [exports.users.user_id] }),
+    relatedMessage: one(exports.chat_messages, { fields: [exports.notifications.related_message_id], references: [exports.chat_messages.message_id] }),
 }));
 /* User reports relations */
 exports.userReportsRelations = (0, drizzle_orm_1.relations)(exports.user_reports, ({ one }) => ({

@@ -3,6 +3,7 @@ import multer from 'multer';
 import {
     createDirectChat,
     getMessages,
+    getUserChats,
     sendMessage
 } from '../controllers/chats.controller';
 import { clerkAuth } from '../middlewares/clerk';
@@ -49,6 +50,33 @@ const router = Router();
  *                   $ref: '#/components/schemas/Chatroom'
  */
 router.post('/direct', clerkAuth, createDirectChat);
+
+/**
+ * @openapi
+ * /chats/user:
+ *   get:
+ *     tags:
+ *       - Chats
+ *     summary: Get user's direct chats
+ *     description: Returns all direct chat rooms for the authenticated user.
+ *     security:
+ *       - clerkAuth: []
+ *     responses:
+ *       '200':
+ *         description: Chats retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Chatroom'
+ */
+router.get('/user', clerkAuth, getUserChats);
 
 /**
  * @openapi

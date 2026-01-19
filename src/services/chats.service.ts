@@ -111,6 +111,14 @@ export class ChatService {
 
         return await chatRepository.getChatMessages(chatroomId, limit, offset);
     }
+
+    /**
+     * Get user's chats
+     */
+    async getUserChats(userId: string, type?: string) {
+        const results = await chatRepository.getUserChats(userId, type);
+        return results.map(result => result.chatroom);
+    }
 }
 
 export const chatService = new ChatService();

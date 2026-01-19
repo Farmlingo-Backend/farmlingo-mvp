@@ -152,6 +152,41 @@ export const actionTypeEnum = pgEnum("action_type", [
   "admin_action",
 ]);
 
+export const membershipRequestStatusEnum = pgEnum("membership_request_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "cancelled",
+]);
+
+export const invitationStatusEnum = pgEnum("invitation_status", [
+  "pending",
+  "accepted",
+  "expired",
+  "cancelled",
+]);
+
+export const membershipActionEnum = pgEnum("membership_action", [
+  "join",
+  "leave",
+  "added",
+  "removed",
+  "role_changed",
+  "banned",
+  "unbanned",
+]);
+
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "message",
+  "member_join",
+  "member_leave",
+  "member_added",
+  "member_removed",
+  "invitation",
+  "request_approved",
+  "request_rejected",
+]);
+
 export const moduleEnum = pgEnum("module_type", [
   "auth",
   "forum",
@@ -595,6 +630,8 @@ export const chatrooms = pgTable("chatrooms", {
   avatar_url: varchar("avatar_url", { length: 1000 }),
   created_by: uuid("created_by"),
   member_count: integer("member_count").default(0),
+  max_members: integer("max_members"), // null means unlimited
+  require_approval: boolean("require_approval").default(false),
   last_message_id: uuid("last_message_id"),
   last_activity: timestamp("last_activity", { withTimezone: true }),
   settings: jsonb("settings"),
@@ -617,6 +654,7 @@ export const chatroom_members = pgTable("chatroom_members", {
   user_id: uuid("user_id").notNull(),
   role: chatMemberRoleEnum("role").default("member"),
   permissions: jsonb("permissions"),
+  invited_by: uuid("invited_by"), // who invited this member
   joined_at: timestamp("joined_at", { withTimezone: true }).defaultNow(),
   last_read_at: timestamp("last_read_at", { withTimezone: true }),
   unread_count: integer("unread_count").default(0),
@@ -788,6 +826,87 @@ export type WeatherData = InferModel<typeof weather_data>;
 export type NewWeatherData = InferModel<typeof weather_data, "insert">;
 
 /**
+ * MEMBERSHIP_REQUESTS
+ */
+export const membership_requests = pgTable("membership_requests", {
+  request_id: uuid("request_id").primaryKey().defaultRandom(),
+  chatroom_id: uuid("chatroom_id").notNull(),
+  user_id: uuid("user_id").notNull(),
+  requested_by: uuid("requested_by"), // null if user self-requested
+  message: text("message"),
+  status: membershipRequestStatusEnum("status").default("pending"),
+  reviewed_by: uuid("reviewed_by"),
+  reviewed_at: timestamp("reviewed_at", { withTimezone: true }),
+  response_message: text("response_message"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }),
+});
+
+export type MembershipRequest = InferModel<typeof membership_requests>;
+export type NewMembershipRequest = InferModel<typeof membership_requests, "insert">;
+
+/**
+ * MEMBERSHIP_LOGS
+ */
+export const membership_logs = pgTable("membership_logs", {
+  log_id: uuid("log_id").primaryKey().defaultRandom(),
+  chatroom_id: uuid("chatroom_id").notNull(),
+  user_id: uuid("user_id").notNull(),
+  action: membershipActionEnum("action").notNull(),
+  performed_by: uuid("performed_by"), // who performed the action (null for self-actions)
+  old_value: jsonb("old_value"), // previous state (role, etc.)
+  new_value: jsonb("new_value"), // new state (role, etc.)
+  reason: text("reason"), // optional reason for the action
+  metadata: jsonb("metadata"), // additional context
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export type MembershipLog = InferModel<typeof membership_logs>;
+export type NewMembershipLog = InferModel<typeof membership_logs, "insert">;
+
+/**
+ * CHATROOM_INVITATIONS
+ */
+export const chatroom_invitations = pgTable("chatroom_invitations", {
+  invitation_id: uuid("invitation_id").primaryKey().defaultRandom(),
+  chatroom_id: uuid("chatroom_id").notNull(),
+  invited_user_id: uuid("invited_user_id"),
+  invited_email: varchar("invited_email", { length: 320 }),
+  invitation_code: varchar("invitation_code", { length: 64 }).notNull().unique(),
+  invited_by: uuid("invited_by").notNull(),
+  expires_at: timestamp("expires_at", { withTimezone: true }),
+  status: invitationStatusEnum("status").default("pending"),
+  accepted_at: timestamp("accepted_at", { withTimezone: true }),
+  message: text("message"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }),
+});
+
+export type ChatroomInvitation = InferModel<typeof chatroom_invitations>;
+export type NewChatroomInvitation = InferModel<typeof chatroom_invitations, "insert">;
+
+/**
+ * NOTIFICATIONS
+ */
+export const notifications = pgTable("notifications", {
+  notification_id: uuid("notification_id").primaryKey().defaultRandom(),
+  user_id: uuid("user_id").notNull(),
+  type: notificationTypeEnum("type").notNull(),
+  title: varchar("title", { length: 256 }).notNull(),
+  message: text("message").notNull(),
+  related_chatroom_id: uuid("related_chatroom_id"),
+  related_user_id: uuid("related_user_id"),
+  related_message_id: uuid("related_message_id"),
+  metadata: jsonb("metadata"),
+  is_read: boolean("is_read").default(false),
+  read_at: timestamp("read_at", { withTimezone: true }),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export type Notification = InferModel<typeof notifications>;
+export type NewNotification = InferModel<typeof notifications, "insert">;
+
+/**
  * RELATIONS
  *
  * We add relations for main entities so Drizzle's `relations()` helper
@@ -931,12 +1050,16 @@ export const chatroomsRelations = relations(chatrooms, ({ one, many }) => ({
   creator: one(users, { fields: [chatrooms.created_by], references: [users.user_id] }),
   members: many(chatroom_members),
   messages: many(chat_messages),
+  membershipRequests: many(membership_requests),
+  membershipLogs: many(membership_logs),
+  invitations: many(chatroom_invitations),
 }));
 
 /* Chatroom members relations */
 export const chatroomMembersRelations = relations(chatroom_members, ({ one }) => ({
   chatroom: one(chatrooms, { fields: [chatroom_members.chatroom_id], references: [chatrooms.chatroom_id] }),
   user: one(users, { fields: [chatroom_members.user_id], references: [users.user_id] }),
+  invitedBy: one(users, { fields: [chatroom_members.invited_by], references: [users.user_id] }),
 }));
 
 /* Chat messages relations */
@@ -964,6 +1087,36 @@ export const messageReadStatusRelations = relations(message_read_status, ({ one 
 export const messageReactionsRelations = relations(message_reactions, ({ one }) => ({
   message: one(chat_messages, { fields: [message_reactions.message_id], references: [chat_messages.message_id] }),
   user: one(users, { fields: [message_reactions.user_id], references: [users.user_id] }),
+}));
+
+/* Membership requests relations */
+export const membershipRequestsRelations = relations(membership_requests, ({ one }) => ({
+  chatroom: one(chatrooms, { fields: [membership_requests.chatroom_id], references: [chatrooms.chatroom_id] }),
+  user: one(users, { fields: [membership_requests.user_id], references: [users.user_id] }),
+  requestedBy: one(users, { fields: [membership_requests.requested_by], references: [users.user_id] }),
+  reviewedBy: one(users, { fields: [membership_requests.reviewed_by], references: [users.user_id] }),
+}));
+
+/* Membership logs relations */
+export const membershipLogsRelations = relations(membership_logs, ({ one }) => ({
+  chatroom: one(chatrooms, { fields: [membership_logs.chatroom_id], references: [chatrooms.chatroom_id] }),
+  user: one(users, { fields: [membership_logs.user_id], references: [users.user_id] }),
+  performedBy: one(users, { fields: [membership_logs.performed_by], references: [users.user_id] }),
+}));
+
+/* Chatroom invitations relations */
+export const chatroomInvitationsRelations = relations(chatroom_invitations, ({ one }) => ({
+  chatroom: one(chatrooms, { fields: [chatroom_invitations.chatroom_id], references: [chatrooms.chatroom_id] }),
+  invitedUser: one(users, { fields: [chatroom_invitations.invited_user_id], references: [users.user_id] }),
+  invitedBy: one(users, { fields: [chatroom_invitations.invited_by], references: [users.user_id] }),
+}));
+
+/* Notifications relations */
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, { fields: [notifications.user_id], references: [users.user_id] }),
+  relatedChatroom: one(chatrooms, { fields: [notifications.related_chatroom_id], references: [chatrooms.chatroom_id] }),
+  relatedUser: one(users, { fields: [notifications.related_user_id], references: [users.user_id] }),
+  relatedMessage: one(chat_messages, { fields: [notifications.related_message_id], references: [chat_messages.message_id] }),
 }));
 
 /* User reports relations */
@@ -1021,6 +1174,10 @@ export {
   message_attachments as messageAttachmentsTable,
   message_read_status as messageReadStatusTable,
   message_reactions as messageReactionsTable,
+  membership_requests as membershipRequestsTable,
+  membership_logs as membershipLogsTable,
+  chatroom_invitations as chatroomInvitationsTable,
+  notifications as notificationsTable,
   user_reports as userReportsTable,
   system_logs as systemLogsTable,
   announcements as announcementsTable,
@@ -1049,4 +1206,8 @@ export {
   actionTypeEnum as action_type_enum,
   moduleEnum as module_enum,
   logLevelEnum as log_level_enum,
+  membershipRequestStatusEnum as membership_request_status_enum,
+  invitationStatusEnum as invitation_status_enum,
+  membershipActionEnum as membership_action_enum,
+  notificationTypeEnum as notification_type_enum,
 };

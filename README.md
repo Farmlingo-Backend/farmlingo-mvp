@@ -1,19 +1,19 @@
- ## Farmlingo Backend (Node.js/TypeScript API)
+## Farmlingo Backend (Node.js/TypeScript API)
 
 A clean, modular, and scalable Node.js backend API for the Farmlingo platform.
 This backend provides a solid foundation with routing, middleware, environment configuration, and a built-in `/health` status endpoint.
 
 ---
 
-##  What This Backend Includes
+## What This Backend Includes
 
-* Modular Express architecture
-* Health check endpoint (`/health`)
-* Built-in middleware: **helmet**, **cors**, **morgan**
-* Centralized configuration via `.env`
-* Error-handling middleware
-* Lightweight logger utility
-* Ready-to-use folder structure
+- Modular Express architecture
+- Health check endpoint (`/health`)
+- Built-in middleware: **helmet**, **cors**, **morgan**
+- Centralized configuration via `.env`
+- Error-handling middleware
+- Lightweight logger utility
+- Ready-to-use folder structure
 
 ---
 
@@ -21,12 +21,12 @@ This backend provides a solid foundation with routing, middleware, environment c
 
 Make sure the following are installed before setting up the backend:
 
-* **Node.js 16 or later**
-* **npm**
+- **Node.js 16 or later**
+- **npm**
 
 ---
 
-#  2. Installation & Setup
+# 2. Installation & Setup
 
 Follow these steps to get the backend running locally.
 
@@ -248,12 +248,12 @@ npm run db:studio
 Note: If Drizzle complains about missing config, create a minimal `drizzle.config.ts` in the project root:
 
 ```ts
-import type { Config } from 'drizzle-kit';
+import type { Config } from "drizzle-kit";
 
 export default {
-  schema: './src/db/schema.ts',
-  out: './drizzle',
-  dialect: 'postgresql',
+  schema: "./src/db/schema.ts",
+  out: "./drizzle",
+  dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL as string,
   },
@@ -269,8 +269,6 @@ The ERD visualizes the relationships across users, courses, lessons, enrollments
 If the embedded images do not render, you can view the ERD directly using the link below:
 
 [**Direct Sequence Diagram Link**](https://www.mermaidchart.com/d/19917d20-e7c7-413a-ba1a-070b1c446c34)
-
-
 
 ---
 
@@ -367,6 +365,7 @@ Create/Update endpoints now expect `multipart/form-data` for field-only forms. S
 Examples:
 
 - Create course
+
 ```bash
 curl -X POST http://localhost:4002/api/courses \
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
@@ -377,6 +376,7 @@ curl -X POST http://localhost:4002/api/courses \
 ```
 
 - Create lesson with metadata
+
 ```bash
 curl -X POST http://localhost:4002/api/lessons \
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
@@ -387,6 +387,7 @@ curl -X POST http://localhost:4002/api/lessons \
 ```
 
 - Create forum post with tags
+
 ```bash
 curl -X POST http://localhost:4002/api/forums/<forumId>/posts \
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
@@ -419,7 +420,52 @@ curl -X POST http://localhost:4002/api/forums/<forumId>/posts \
 
 ---
 
-# 15. Sequence Diagram
+# 15. Admin Dashboard Features
+
+The Farmlingo backend now includes comprehensive admin dashboard functionality with the following features:
+
+## 15.1 Admin Dashboard Overview
+
+Access the admin dashboard at `/admin/dashboard` to get a comprehensive overview of your platform:
+
+- **System Statistics**: Real-time counts of users, courses, lessons, enrollments, forums, chatrooms, and announcements
+- **Recent Activity**: Latest user registrations and active announcements
+- **System Alerts**: Notifications about inactive announcements and system status
+- **Quick Actions**: Direct links to create announcements, manage users, view reports, and check system health
+
+## 15.2 Admin Reports and Analytics
+
+Generate detailed analytics reports at `/admin/reports`:
+
+- **User Growth Analytics**: Monthly user registration trends over the past 12 months
+- **Course Popularity**: Top 10 most enrolled courses with enrollment counts
+- **Forum Activity**: Most active forums ranked by post count and member engagement
+
+## 15.3 Admin Management Features
+
+The admin panel provides comprehensive management capabilities:
+
+### User Management
+
+- View all users with pagination support
+- Suspend/activate user accounts
+- Change user roles (student, farmer, admin, super_admin)
+- Permanently delete user accounts (super admin only)
+
+### Content Management
+
+- View all courses, lessons, and enrollments
+- Monitor forum activity and manage discussions
+- View all chatrooms and messages
+- Manage announcements with bulk activate/deactivate
+
+### System Monitoring
+
+- System health checks at `/admin/system/health`
+- Database connectivity verification
+- Service status monitoring
+
+## 16. Sequence Diagram
 
 The following sequence diagram visualizes major flows across authentication, courses, forums, chat, reports, and weather data.
 
@@ -427,16 +473,7 @@ The following sequence diagram visualizes major flows across authentication, cou
 
 If it does not render in your viewer, open the file directly at [Direct Sequence Diagram Link](https://www.mermaidchart.com/d/3668fe9a-9bf9-4a26-85c9-d106d2e41cf4).
 
-## 16. Render Deployment
+## 17. Render Deployment
 
 You can access the Swagger UI for the Farmlingo backend here:  
 [Open Swagger UI](https://farmlingo-backend-swagger.onrender.com/api-docs/#/)
-
-
-
-
-
-
-
-
-

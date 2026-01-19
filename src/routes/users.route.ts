@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import {
   syncUser,
-  getAuthenticatedUserProfile
+  getAuthenticatedUserProfile,
+  getUsers
 } from '../controllers/users.controller';
 import { verifyClerkToken, clerkAuth } from '../middlewares/clerk';
 
@@ -112,5 +113,57 @@ router.post('/sync', verifyClerkToken, syncUser);
  *               $ref: '#/components/schemas/ApiError'
  * */
 router.get('/me', clerkAuth, getAuthenticatedUserProfile);
+
+/**
+ * @openapi
+ * /users:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get all users (authenticated users only)
+ *     description: Returns a list of all users for chat and community features.
+ *     security:
+ *       - clerkAuth: []
+ *     responses:
+ *       '200':
+ *         description: List of users retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       user_id:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       first_name:
+ *                         type: string
+ *                       last_name:
+ *                         type: string
+ *                       image_url:
+ *                         type: string
+ *                       created_at:
+ *                         type: string
+ *                       is_active:
+ *                         type: boolean
+ *       '401':
+ *         description: Unauthorized - Invalid or missing Clerk access token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '500':
+ *         description: Unexpected server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ * */
+router.get('/', clerkAuth, getUsers);
 
 export default router;

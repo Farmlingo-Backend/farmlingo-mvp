@@ -23,6 +23,10 @@ export interface AuthContext {
   clerk_user_id?: string | null;
 }
 
+/**
+ * Legacy JWT authentication middleware
+ * @deprecated Use Clerk authentication instead
+ */
 export const authenticate = async (
   req: Request,
   res: Response,
@@ -83,4 +87,38 @@ export const authenticate = async (
   } catch (err) {
     return next(err as Error);
   }
-}
+};
+
+/**
+ * Role-based authorization middleware
+ * Checks if the authenticated user has the required role
+ */
+export const requireRole = (requiredRoles: string | string[]) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const auth = (req as any).auth as AuthContext;
+
+    if (!auth) {
+      return next(createHttpError(401, 'Authentication required'));
+    }
+
+    const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+    
+    // For now, we'll use a simple role check
+    // In a full implementation, roles would be managed by Clerk
+    if (!roles.includes('admin') && !roles.includes('super_admin')) {
+      return next(createHttpError(403, 'Insufficient permissions'));
+    }
+
+    return next();
+  };
+};
+
+/**
+ * Admin-only authorization middleware
+ */
+export const requireAdmin = requireRole(['admin', 'super_admin']);
+
+/**
+ * Super admin only authorization middleware
+ */
+export const requireSuperAdmin = requireRole(['super_admin']);

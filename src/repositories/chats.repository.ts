@@ -153,6 +153,26 @@ export class ChatRepository {
             })
             .where(eq(chatrooms.chatroom_id, chatroomId));
     }
+
+    async getUserChats(userId: string, type?: string) {
+        const query = db
+            .select({
+                chatroom: chatrooms,
+                member: chatroom_members
+            })
+            .from(chatrooms)
+            .innerJoin(chatroom_members, eq(chatrooms.chatroom_id, chatroom_members.chatroom_id))
+            .where(
+                and(
+                    eq(chatroom_members.user_id, userId),
+                    eq(chatroom_members.status, 'active'),
+                    type ? eq(chatrooms.chatroom_type, type as "direct" | "group" | "topic_based") : sql`true`
+                )
+            )
+            .orderBy(desc(chatrooms.last_activity));
+
+        return await query;
+    }
 }
 
 export const chatRepository = new ChatRepository();

@@ -29,6 +29,7 @@ app.use(requestLogger_1.requestLogger);
 app.use('/api-docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_1.default, {
     swaggerOptions: {
         persistAuthorization: true,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         requestInterceptor: (req) => {
             req.credentials = 'include';
             return req;
@@ -47,6 +48,13 @@ app.get('/', (req, res) => {
         status: 'ok',
         message: 'Farmlingo backend running. Visit /api/health to check API health.'
     });
+});
+// 404 Not Found Handler (before error handler)
+app.use((req, res, next) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const error = new Error(`Not Found - ${req.originalUrl}`);
+    error.status = 404;
+    next(error);
 });
 // Error handling (always last)
 app.use(errorHandler_1.errorHandler);

@@ -14,6 +14,6 @@ exports.healthMessage = (_c = process.env.HEALTH_OK_MESSAGE) !== null && _c !== 
 exports.jwtSecret = (_d = process.env.JWT_SECRET_KEY) !== null && _d !== void 0 ? _d : (() => { throw new Error('JWT_SECRET_KEY environment variable is required'); })();
 exports.jwtExpiresIn = (_e = process.env.JWT_EXPIRES_IN) !== null && _e !== void 0 ? _e : '1h';
 // Clerk configuration
-exports.clerkWebhookSecret = (_f = process.env.CLERK_WEBHOOK_SECRET) !== null && _f !== void 0 ? _f : '';
-exports.clerkPublishableKey = (_g = process.env.CLERK_PUBLISHABLE_KEY) !== null && _g !== void 0 ? _g : '';
-exports.clerkSecretKey = (_h = process.env.CLERK_SECRET_KEY) !== null && _h !== void 0 ? _h : '';
+exports.clerkWebhookSecret = (_f = process.env.CLERK_WEBHOOK_SECRET) !== null && _f !== void 0 ? _f : (() => { throw new Error('CLERK_WEBHOOK_SECRET environment variable is required'); })();
+exports.clerkPublishableKey = (_g = process.env.CLERK_PUBLISHABLE_KEY) !== null && _g !== void 0 ? _g : (() => { throw new Error('CLERK_PUBLISHABLE_KEY environment variable is required'); })();
+exports.clerkSecretKey = (_h = process.env.CLERK_SECRET_KEY) !== null && _h !== void 0 ? _h : (() => { throw new Error('CLERK_SECRET_KEY environment variable is required'); })();

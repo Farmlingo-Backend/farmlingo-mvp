@@ -6,15 +6,15 @@
   "scripts": {
     "build": "tsc",
     "start": "npm run db:push && npm run build && node dist/server.js",
-    "dev": "npm run db:push && nodemon --watch src --watch server.ts --ext ts --exec ts-node server.ts",
+    "dev": "npm run build && nodemon --watch src --watch server.ts --watch dist --ext ts,js --exec node dist/server.js",
     "lint": "eslint src/**/*.ts utils/**/*.ts *.ts || true",
-    "db:push": "npx drizzle-kit push",
+    "db:push": "npx drizzle-kit up:pg",
     "db:studio": "npx drizzle-kit studio"
   },
   "author": "hannah Authur",
   "license": "MIT",
   "dependencies": {
-    "@clerk/clerk-sdk-node": "^4.13.23",
+    "@clerk/clerk-sdk-node": "^5.1.6",
     "@neondatabase/serverless": "^1.0.2",
     "@types/socket.io": "^3.0.1",
     "bcrypt": "^6.0.0",
@@ -46,10 +46,10 @@
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.53.0",
     "baseline-browser-mapping": "^2.9.15",
-    "drizzle-kit": "^0.31.7",
+    "drizzle-kit": "^0.18.1",
     "eslint": "^8.57.1",
-    "nodemon": "^2.0.22",
-    "ts-node": "^10.9.2",
+    "nodemon": "^3.1.11",
+    "ts-node": "^1.7.1",
     "typescript": "^5.9.3"
   }
 }

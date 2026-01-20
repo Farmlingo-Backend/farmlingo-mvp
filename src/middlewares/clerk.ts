@@ -37,9 +37,9 @@ export const verifyClerkToken = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const authHeader = req.headers.authorization || '';
+        const authHeader = req.headers.authorization;
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        if (!authHeader?.startsWith('Bearer ')) {
             return next(createHttpError(401, 'Missing or invalid Authorization header'));
         }
 
@@ -50,7 +50,11 @@ export const verifyClerkToken = async (
         }
 
         // Verify the token with Clerk
-        let session: any;
+        let session: {
+            sub: string;
+            sid?: string;
+            [key: string]: unknown;
+        };
         try {
             // Verify the session token
             // Passing authorizedParties or strict issuer checks might fail on localhost loops
@@ -61,14 +65,14 @@ export const verifyClerkToken = async (
             return next(createHttpError(401, 'Invalid or expired token'));
         }
 
-        if (!session || !session.sub) {
+        if (!session?.sub) {
             return next(createHttpError(401, 'Invalid token payload'));
         }
 
         const clerkUserId = session.sub;
 
         // Attach Clerk context
-        (req as any).clerkAuth = {
+        req.clerkAuth = {
             clerkUserId: clerkUserId,
             sessionId: session.sid, // Might be undefined depending on token type
         } as ClerkAuthContext;
@@ -91,9 +95,9 @@ export const requireDbUser = async (
     next: NextFunction
 ): Promise<void> => {
     try {
-        const clerkAuth = (req as any).clerkAuth as ClerkAuthContext;
+        const clerkAuth = req.clerkAuth as ClerkAuthContext;
 
-        if (!clerkAuth || !clerkAuth.clerkUserId) {
+        if (!clerkAuth?.clerkUserId) {
             return next(createHttpError(401, 'Unauthorized - No Clerk token verified'));
         }
 
@@ -117,9 +121,9 @@ export const requireDbUser = async (
         }
 
         // Attach internal Auth context
-        (req as any).auth = {
+        req.auth = {
             userId: user.user_id,
-            role: 'student', // Default/fallback
+            role: user.role, // Use role from DB
             email: user.email,
             clerk_user_id: user.clerk_user_id
         } as AuthContext;

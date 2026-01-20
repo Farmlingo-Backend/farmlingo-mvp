@@ -26,7 +26,7 @@ router.use('/forums', forums_route_1.default);
 router.use('/enrollments', enrollments_route_1.default);
 router.use('/chatrooms', chat_route_1.default);
 router.use('/chats', chats_route_1.default);
-router.use('/chatrooms', membership_route_1.default);
+router.use('/memberships', membership_route_1.default);
 router.use('/announcements', announcements_route_1.default);
 router.use('/admin', admin_route_1.default);
 router.use('/webhooks', webhooks_route_1.default);

@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -34,6 +34,7 @@ app.use(
   swaggerUi.setup(swaggerSpec, {
     swaggerOptions: {
       persistAuthorization: true,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       requestInterceptor: (req: any) => {
         req.credentials = 'include';
         return req;
@@ -55,6 +56,14 @@ app.get('/', (req: Request, res: Response) => {
     status: 'ok',
     message: 'Farmlingo backend running. Visit /api/health to check API health.'
   });
+});
+
+// 404 Not Found Handler (before error handler)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const error = new Error(`Not Found - ${req.originalUrl}`) as any;
+  error.status = 404;
+  next(error);
 });
 
 // Error handling (always last)

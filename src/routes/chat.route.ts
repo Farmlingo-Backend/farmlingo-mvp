@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { authenticate } from '../middlewares/auth';
 import { clerkAuth } from '../middlewares/clerk';
 import {
   getChatrooms,
@@ -13,6 +12,8 @@ import {
   updateChatMessage,
   deleteChatMessage,
   addMessageReaction,
+  getMessageReactions,
+  removeMessageReaction,
   searchMessages,
   getMessageHistory,
   clearChatHistory,
@@ -362,6 +363,214 @@ const upload = multer({ dest: 'uploads/chat/' });
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ApiError'
+ *   get:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Get message reactions
+ *     description: Retrieve all reactions for a specific message.
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the message
+ *     responses:
+ *       '200':
+ *         description: Reactions retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/MessageReaction'
+ *                 count:
+ *                   type: integer
+ *                   description: Total number of reactions
+ *   delete:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Remove message reaction
+ *     description: Remove a specific reaction from a message.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the message
+ *       - in: query
+ *         name: emoji
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The emoji to remove
+ *     responses:
+ *       '200':
+ *         description: Reaction removed successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       '403':
+ *         description: Forbidden - Not authorized to remove this reaction.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '404':
+ *         description: Reaction not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+
+ * /chatrooms/{chatroomId}/messages/{messageId}/attachments:
+ *   post:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Upload message attachment
+ *     description: Upload a file attachment to a message.
+ *     security:
+ *       - clerkAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the message to attach to
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: File to upload
+ *               attachment_type:
+ *                 type: string
+ *                 enum: [image, video, audio, document, other]
+ *                 default: other
+ *                 description: Type of attachment
+ *     responses:
+ *       '201':
+ *         description: Attachment uploaded successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 file_url:
+ *                   type: string
+ *                   description: URL to access the uploaded file
+ *       '400':
+ *         description: Bad request - Invalid file or missing parameters.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '403':
+ *         description: Forbidden - Not authorized to upload attachments.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *       '404':
+ *         description: Message not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiError'
+ *   get:
+ *     tags:
+ *       - Chatrooms
+ *     summary: Get message attachments
+ *     description: Retrieve all attachments for a specific message.
+ *     parameters:
+ *       - in: path
+ *         name: chatroomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the chatroom
+ *       - in: path
+ *         name: messageId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The ID of the message
+ *     responses:
+ *       '200':
+ *         description: Attachments retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       attachment_id:
+ *                         type: string
+ *                         format: uuid
+ *                       file_url:
+ *                         type: string
+ *                       file_name:
+ *                         type: string
+ *                       file_type:
+ *                         type: string
+ *                       file_size:
+ *                         type: integer
+ *                       attachment_type:
+ *                         type: string
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                 count:
+ *                   type: integer
+ *                   description: Total number of attachments
  *
  * /chatrooms/{chatroomId}/search:
  *   get:
@@ -626,8 +835,6 @@ const upload = multer({ dest: 'uploads/chat/' });
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ApiError'
- *
- * /chatrooms/{chatroomId}/members:
  *   get:
  *     tags:
  *       - Chatrooms
@@ -988,6 +1195,8 @@ router.post('/:chatroomId/messages', clerkAuth, upload.none(), createChatMessage
 router.put('/:chatroomId/messages/:messageId', clerkAuth, updateChatMessage);
 router.delete('/:chatroomId/messages/:messageId', clerkAuth, deleteChatMessage);
 router.post('/:chatroomId/messages/:messageId/reactions', clerkAuth, addMessageReaction);
+router.get('/:chatroomId/messages/:messageId/reactions', getMessageReactions);
+router.delete('/:chatroomId/messages/:messageId/reactions', clerkAuth, removeMessageReaction);
 router.get('/:chatroomId/search', clerkAuth, searchMessages);
 router.get('/:chatroomId/history', clerkAuth, getMessageHistory);
 router.delete('/:chatroomId/clear-history', clerkAuth, clearChatHistory);

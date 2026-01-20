@@ -2,7 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import { eq, sql, desc } from 'drizzle-orm';
 
 import { db } from '../db/dbconfig';
-import { chatrooms, chat_messages, message_reactions, chatroom_members, chatroomInvitationsTable as chatroom_invitations, membershipRequestsTable as membership_requests, NewChatroom, NewChatMessage } from '../db/schema';
+import {
+  chatrooms,
+  chat_messages,
+  message_reactions,
+  chatroom_members,
+  chatroomInvitationsTable as chatroom_invitations,
+  membershipRequestsTable as membership_requests,
+  NewChatroom,
+  NewChatMessage,
+  NewChatroomMember
+} from '../db/schema';
 
 interface HttpError extends Error { status?: number }
 const createHttpError = (status: number, message: string): HttpError => {
@@ -11,20 +21,14 @@ const createHttpError = (status: number, message: string): HttpError => {
   return err;
 };
 
-function toNumber(value: unknown): number | undefined {
-  if (value === undefined || value === null || value === '') return undefined;
-  const n = typeof value === 'string' ? Number(value) : (value as number);
-  return Number.isFinite(n) ? n : undefined;
-}
-
 export const getChatrooms = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const page = Math.max(parseInt(String(req.query.page ?? '1'), 10) || 1, 1);
-    const limit = Math.max(parseInt(String(req.query.limit ?? '10'), 10) || 10, 1);
+    const page = Math.max(parseInt(String(req.query.page ?? '1'), 10) ?? 1, 1);
+    const limit = Math.max(parseInt(String(req.query.limit ?? '10'), 10) ?? 10, 1);
     const offset = (page - 1) * limit;
 
     const rows = await db.select().from(chatrooms).limit(limit).offset(offset);
@@ -41,7 +45,7 @@ export const createChatroom = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = (req as any).auth.userId;
+    const userId = req.auth?.userId;
     const body = req.body as Partial<NewChatroom & { settings?: unknown }>;
 
     let settings: unknown = body.settings;
@@ -55,20 +59,24 @@ export const createChatroom = async (
         chatroom_type: body.chatroom_type!,
         name: body.name,
         description: body.description,
-        avatar_url: (body as any).avatar_url,
+        avatar_url: body.avatar_url,
         created_by: userId,
-        settings: settings as NewChatroom['settings'],
-      } as NewChatroom)
+        settings: settings,
+      })
       .returning();
 
     // Add creator as admin member
+    if (!userId) {
+      throw createHttpError(401, 'User ID is required');
+    }
+
     await db.insert(chatroom_members).values({
       chatroom_id: created.chatroom_id,
       user_id: userId,
       role: 'admin',
       status: 'active',
       invited_by: userId,
-    });
+    } as NewChatroomMember);
 
     res.status(201).json(created);
   } catch (err) {
@@ -112,8 +120,8 @@ export const updateChatroom = async (
         chatroom_type: body.chatroom_type,
         name: body.name,
         description: body.description,
-        avatar_url: (body as any).avatar_url,
-        settings: settings as NewChatroom['settings'],
+        avatar_url: body.avatar_url,
+        settings: settings,
       })
       .where(eq(chatrooms.chatroom_id, chatroomId))
       .returning();
@@ -147,8 +155,8 @@ export const getChatMessages = async (
 ): Promise<void> => {
   try {
     const { chatroomId } = req.params as { chatroomId: string };
-    const page = Math.max(parseInt(String(req.query.page ?? '1'), 10) || 1, 1);
-    const limit = Math.max(parseInt(String(req.query.limit ?? '50'), 10) || 50, 1);
+    const page = Math.max(parseInt(String(req.query.page ?? '1'), 10) ?? 1, 1);
+    const limit = Math.max(parseInt(String(req.query.limit ?? '50'), 10) ?? 50, 1);
     const offset = (page - 1) * limit;
 
     const rows = await db
@@ -170,7 +178,7 @@ export const createChatMessage = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = (req as any).auth.userId;
+    const userId = req.auth?.userId;
     const { chatroomId } = req.params as { chatroomId: string };
     const body = req.body as Partial<NewChatMessage & { metadata?: unknown }>;
 
@@ -184,10 +192,10 @@ export const createChatMessage = async (
       .values({
         chatroom_id: chatroomId,
         user_id: userId,
-        reply_to_message_id: (body as any).reply_to_message_id,
-        content: (body as any).content,
-        message_type: (body as any).message_type,
-        metadata: metadata as NewChatMessage['metadata'],
+        reply_to_message_id: body.reply_to_message_id,
+        content: body.content,
+        message_type: body.message_type,
+        metadata: metadata,
       } as NewChatMessage)
       .returning();
 
@@ -206,7 +214,7 @@ export const getAllChatroomsAdmin = async (
   try {
     const auth = req.auth;
 
-    if (!auth) {
+    if (!auth?.role) {
       return next(createHttpError(401, 'Unauthorized'));
     }
 
@@ -214,8 +222,8 @@ export const getAllChatroomsAdmin = async (
       return next(createHttpError(403, 'Forbidden: Admin access required'));
     }
 
-    const page = Math.max(parseInt(String(req.query.page ?? '1'), 10) || 1, 1);
-    const limit = Math.max(parseInt(String(req.query.limit ?? '50'), 10) || 50, 1);
+    const page = Math.max(parseInt(String(req.query.page ?? '1'), 10) ?? 1, 1);
+    const limit = Math.max(parseInt(String(req.query.limit ?? '50'), 10) ?? 50, 1);
     const offset = (page - 1) * limit;
 
     const rows = await db.select().from(chatrooms).limit(limit).offset(offset);
@@ -235,13 +243,13 @@ export const updateChatMessage = async (
   try {
     const { messageId } = req.params as { messageId: string };
     const { content } = req.body;
-    const userId = (req as any).auth?.userId;
+    const userId = req.auth?.userId;
 
     if (!userId) {
       return next(createHttpError(401, 'Unauthorized'));
     }
 
-    if (!content || !content.trim()) {
+    if (!content?.trim()) {
       return next(createHttpError(400, 'Message content is required'));
     }
 
@@ -287,7 +295,7 @@ export const deleteChatMessage = async (
 ): Promise<void> => {
   try {
     const { messageId } = req.params as { messageId: string };
-    const userId = (req as any).auth?.userId;
+    const userId = req.auth?.userId;
 
     if (!userId) {
       return next(createHttpError(401, 'Unauthorized'));
@@ -308,7 +316,7 @@ export const deleteChatMessage = async (
 
     // Check if user owns the message or is admin
     const auth = req.auth;
-    const isAdmin = auth && (auth.role === 'admin' || auth.role === 'super_admin');
+    const isAdmin = auth?.role && (auth.role === 'admin' || auth.role === 'super_admin');
 
     if (message.user_id !== userId && !isAdmin) {
       return next(createHttpError(403, 'You can only delete your own messages'));
@@ -339,7 +347,7 @@ export const addMessageReaction = async (
   try {
     const { messageId } = req.params as { messageId: string };
     const { emoji } = req.body;
-    const userId = (req as any).auth?.userId;
+    const userId = req.auth?.userId;
 
     if (!userId) {
       return next(createHttpError(401, 'Unauthorized'));
@@ -376,6 +384,63 @@ export const addMessageReaction = async (
   }
 };
 
+export const getMessageReactions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { messageId } = req.params as { messageId: string };
+
+    // Get all reactions for the message
+    const reactions = await db
+      .select()
+      .from(message_reactions)
+      .where(eq(message_reactions.message_id, messageId));
+
+    res.status(200).json({
+      data: reactions,
+      count: reactions.length
+    });
+  } catch (err) {
+    next(err as Error);
+  }
+};
+
+export const removeMessageReaction = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { messageId } = req.params as { messageId: string };
+    const { emoji } = req.query as { emoji: string };
+    const userId = req.auth?.userId;
+
+    if (!userId) {
+      return next(createHttpError(401, 'Unauthorized'));
+    }
+
+    if (!emoji) {
+      return next(createHttpError(400, 'Emoji parameter is required'));
+    }
+
+    // Remove the specific reaction
+    const result = await db
+      .delete(message_reactions)
+      .where(sql`${message_reactions.message_id} = ${messageId} AND ${message_reactions.user_id} = ${userId} AND ${message_reactions.emoji} = ${emoji}`)
+      .returning();
+
+    if (result.length === 0) {
+      return next(createHttpError(404, 'Reaction not found'));
+    }
+
+    res.status(200).json({ message: 'Reaction removed successfully' });
+  } catch (err) {
+    next(err as Error);
+  }
+};
+
 export const searchMessages = async (
   req: Request,
   res: Response,
@@ -384,7 +449,7 @@ export const searchMessages = async (
   try {
     const { chatroomId } = req.params as { chatroomId: string };
     const { q: searchQuery, limit = 50, offset = 0 } = req.query;
-    const userId = (req as any).auth?.userId;
+    const userId = req.auth?.userId;
 
     if (!userId) {
       return next(createHttpError(401, 'Unauthorized'));
@@ -420,7 +485,7 @@ export const getMessageHistory = async (
   try {
     const { chatroomId } = req.params as { chatroomId: string };
     const { days = 30, limit = 100 } = req.query;
-    const userId = (req as any).auth?.userId;
+    const userId = req.auth?.userId;
 
     if (!userId) {
       return next(createHttpError(401, 'Unauthorized'));
@@ -451,7 +516,7 @@ export const clearChatHistory = async (
 ): Promise<void> => {
   try {
     const { chatroomId } = req.params;
-    const userId = (req as any).auth?.userId;
+    const userId = req.auth?.userId;
 
     if (!userId) {
       return next(createHttpError(401, 'Unauthorized'));
@@ -473,7 +538,7 @@ export const clearChatHistory = async (
       .where(eq(chatrooms.chatroom_id, chatroomId))
       .limit(1);
 
-    if (!chat || chat.chatroom_type !== 'direct') {
+    if (chat?.chatroom_type !== 'direct') {
       return next(createHttpError(400, 'Chat history can only be cleared for private conversations'));
     }
 
@@ -500,7 +565,7 @@ export const getAllChatMessagesAdmin = async (
   try {
     const auth = req.auth;
 
-    if (!auth) {
+    if (!auth?.role) {
       return next(createHttpError(401, 'Unauthorized'));
     }
 
@@ -508,8 +573,8 @@ export const getAllChatMessagesAdmin = async (
       return next(createHttpError(403, 'Forbidden: Admin access required'));
     }
 
-    const page = Math.max(parseInt(String(req.query.page ?? '1'), 10) || 1, 1);
-    const limit = Math.max(parseInt(String(req.query.limit ?? '100'), 10) || 100, 1);
+    const page = Math.max(parseInt(String(req.query.page ?? '1'), 10) ?? 1, 1);
+    const limit = Math.max(parseInt(String(req.query.limit ?? '100'), 10) ?? 100, 1);
     const offset = (page - 1) * limit;
 
     const rows = await db.select().from(chat_messages).limit(limit).offset(offset);
@@ -529,7 +594,7 @@ export const addChatroomMember = async (
   try {
     const { chatroomId } = req.params as { chatroomId: string };
     const { user_id, role = 'member' } = req.body;
-    const currentUserId = (req as any).auth?.userId;
+    const currentUserId = req.auth?.userId;
 
     if (!currentUserId) {
       return next(createHttpError(401, 'Unauthorized'));
@@ -612,7 +677,7 @@ export const inviteMember = async (
   try {
     const { chatroomId } = req.params as { chatroomId: string };
     const { user_id, email, message } = req.body;
-    const currentUserId = (req as any).auth?.userId;
+    const currentUserId = req.auth?.userId;
 
     if (!currentUserId) {
       return next(createHttpError(401, 'Unauthorized'));
@@ -674,11 +739,11 @@ export const inviteMember = async (
       .insert(chatroom_invitations)
       .values({
         chatroom_id: chatroomId,
-        invited_user_id: user_id || null,
-        invited_email: email || null,
+        invited_user_id: user_id ?? null,
+        invited_email: email ?? null,
         invitation_code: invitationCode,
         invited_by: currentUserId,
-        message: message || null,
+        message: message ?? null,
       })
       .returning();
 
@@ -696,7 +761,7 @@ export const requestJoin = async (
   try {
     const { chatroomId } = req.params as { chatroomId: string };
     const { message } = req.body;
-    const userId = (req as any).auth?.userId;
+    const userId = req.auth?.userId;
 
     if (!userId) {
       return next(createHttpError(401, 'Unauthorized'));
@@ -745,7 +810,7 @@ export const requestJoin = async (
       .values({
         chatroom_id: chatroomId,
         user_id: userId,
-        message: message || null,
+        message: message ?? null,
         status: 'pending',
       })
       .returning();
@@ -763,7 +828,7 @@ export const approveJoinRequest = async (
 ): Promise<void> => {
   try {
     const { chatroomId, requestId } = req.params as { chatroomId: string; requestId: string };
-    const currentUserId = (req as any).auth?.userId;
+    const currentUserId = req.auth?.userId;
 
     if (!currentUserId) {
       return next(createHttpError(401, 'Unauthorized'));
@@ -856,7 +921,7 @@ export const rejectJoinRequest = async (
   try {
     const { chatroomId, requestId } = req.params as { chatroomId: string; requestId: string };
     const { reason } = req.body;
-    const currentUserId = (req as any).auth?.userId;
+    const currentUserId = req.auth?.userId;
 
     if (!currentUserId) {
       return next(createHttpError(401, 'Unauthorized'));
@@ -880,7 +945,7 @@ export const rejectJoinRequest = async (
         status: 'rejected',
         reviewed_by: currentUserId,
         reviewed_at: new Date(),
-        response_message: reason || null
+        response_message: reason ?? null
       })
       .where(sql`${membership_requests.request_id} = ${requestId} AND ${membership_requests.chatroom_id} = ${chatroomId} AND ${membership_requests.status} = 'pending'`)
       .returning();
@@ -902,7 +967,7 @@ export const removeChatroomMember = async (
 ): Promise<void> => {
   try {
     const { chatroomId, userId } = req.params as { chatroomId: string; userId: string };
-    const currentUserId = (req as any).auth?.userId;
+    const currentUserId = req.auth?.userId;
 
     if (!currentUserId) {
       return next(createHttpError(401, 'Unauthorized'));
@@ -958,7 +1023,7 @@ export const changeMemberRole = async (
   try {
     const { chatroomId, userId } = req.params as { chatroomId: string; userId: string };
     const { role } = req.body;
-    const currentUserId = (req as any).auth?.userId;
+    const currentUserId = req.auth?.userId;
 
     if (!currentUserId) {
       return next(createHttpError(401, 'Unauthorized'));

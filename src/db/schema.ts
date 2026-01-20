@@ -215,6 +215,7 @@ export const users = pgTable(
   {
     user_id: uuid("user_id").primaryKey().defaultRandom(),
     clerk_user_id: varchar("clerk_user_id", { length: 128 }).unique(),
+    role: rolesEnum("role").default("student").notNull(), // ADDED for RBAC
     email: varchar("email", { length: 320 }).notNull().unique(),
     first_name: varchar("first_name", { length: 128 }),
     last_name: varchar("last_name", { length: 128 }),

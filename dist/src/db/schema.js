@@ -205,6 +205,7 @@ exports.log_level_enum = exports.logLevelEnum;
 exports.users = (0, pg_core_1.pgTable)("users", {
     user_id: (0, pg_core_1.uuid)("user_id").primaryKey().defaultRandom(),
     clerk_user_id: (0, pg_core_1.varchar)("clerk_user_id", { length: 128 }).unique(),
+    role: (0, exports.rolesEnum)("role").default("student").notNull(), // ADDED for RBAC
     email: (0, pg_core_1.varchar)("email", { length: 320 }).notNull().unique(),
     first_name: (0, pg_core_1.varchar)("first_name", { length: 128 }),
     last_name: (0, pg_core_1.varchar)("last_name", { length: 128 }),

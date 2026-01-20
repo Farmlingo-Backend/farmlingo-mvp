@@ -37,6 +37,10 @@ exports.db = void 0;
 const serverless_1 = require("@neondatabase/serverless");
 const neon_http_1 = require("drizzle-orm/neon-http");
 const schema = __importStar(require("./schema"));
-const sql = (0, serverless_1.neon)(process.env.DATABASE_URL);
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is required.');
+}
+const sql = (0, serverless_1.neon)(databaseUrl);
 exports.db = (0, neon_http_1.drizzle)(sql, { schema });
 exports.default = exports.db;

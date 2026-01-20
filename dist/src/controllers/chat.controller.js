@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changeMemberRole = exports.removeChatroomMember = exports.rejectJoinRequest = exports.approveJoinRequest = exports.requestJoin = exports.inviteMember = exports.getChatroomMembers = exports.addChatroomMember = exports.getAllChatMessagesAdmin = exports.clearChatHistory = exports.getMessageHistory = exports.searchMessages = exports.addMessageReaction = exports.deleteChatMessage = exports.updateChatMessage = exports.getAllChatroomsAdmin = exports.createChatMessage = exports.getChatMessages = exports.deleteChatroom = exports.updateChatroom = exports.getChatroomById = exports.createChatroom = exports.getChatrooms = void 0;
+exports.changeMemberRole = exports.removeChatroomMember = exports.rejectJoinRequest = exports.approveJoinRequest = exports.requestJoin = exports.inviteMember = exports.getChatroomMembers = exports.addChatroomMember = exports.getAllChatMessagesAdmin = exports.clearChatHistory = exports.getMessageHistory = exports.searchMessages = exports.removeMessageReaction = exports.getMessageReactions = exports.addMessageReaction = exports.deleteChatMessage = exports.updateChatMessage = exports.getAllChatroomsAdmin = exports.createChatMessage = exports.getChatMessages = exports.deleteChatroom = exports.updateChatroom = exports.getChatroomById = exports.createChatroom = exports.getChatrooms = void 0;
 const drizzle_orm_1 = require("drizzle-orm");
 const dbconfig_1 = require("../db/dbconfig");
 const schema_1 = require("../db/schema");
@@ -9,17 +9,11 @@ const createHttpError = (status, message) => {
     err.status = status;
     return err;
 };
-function toNumber(value) {
-    if (value === undefined || value === null || value === '')
-        return undefined;
-    const n = typeof value === 'string' ? Number(value) : value;
-    return Number.isFinite(n) ? n : undefined;
-}
 const getChatrooms = async (req, res, next) => {
-    var _a, _b;
+    var _a, _b, _c, _d;
     try {
-        const page = Math.max(parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10) || 1, 1);
-        const limit = Math.max(parseInt(String((_b = req.query.limit) !== null && _b !== void 0 ? _b : '10'), 10) || 10, 1);
+        const page = Math.max((_b = parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10)) !== null && _b !== void 0 ? _b : 1, 1);
+        const limit = Math.max((_d = parseInt(String((_c = req.query.limit) !== null && _c !== void 0 ? _c : '10'), 10)) !== null && _d !== void 0 ? _d : 10, 1);
         const offset = (page - 1) * limit;
         const rows = await dbconfig_1.db.select().from(schema_1.chatrooms).limit(limit).offset(offset);
         res.status(200).json({ data: rows, pagination: { page, limit } });
@@ -30,8 +24,9 @@ const getChatrooms = async (req, res, next) => {
 };
 exports.getChatrooms = getChatrooms;
 const createChatroom = async (req, res, next) => {
+    var _a;
     try {
-        const userId = req.auth.userId;
+        const userId = (_a = req.auth) === null || _a === void 0 ? void 0 : _a.userId;
         const body = req.body;
         let settings = body.settings;
         if (typeof settings === 'string') {
@@ -54,6 +49,9 @@ const createChatroom = async (req, res, next) => {
         })
             .returning();
         // Add creator as admin member
+        if (!userId) {
+            throw createHttpError(401, 'User ID is required');
+        }
         await dbconfig_1.db.insert(schema_1.chatroom_members).values({
             chatroom_id: created.chatroom_id,
             user_id: userId,
@@ -129,11 +127,11 @@ const deleteChatroom = async (req, res, next) => {
 };
 exports.deleteChatroom = deleteChatroom;
 const getChatMessages = async (req, res, next) => {
-    var _a, _b;
+    var _a, _b, _c, _d;
     try {
         const { chatroomId } = req.params;
-        const page = Math.max(parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10) || 1, 1);
-        const limit = Math.max(parseInt(String((_b = req.query.limit) !== null && _b !== void 0 ? _b : '50'), 10) || 50, 1);
+        const page = Math.max((_b = parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10)) !== null && _b !== void 0 ? _b : 1, 1);
+        const limit = Math.max((_d = parseInt(String((_c = req.query.limit) !== null && _c !== void 0 ? _c : '50'), 10)) !== null && _d !== void 0 ? _d : 50, 1);
         const offset = (page - 1) * limit;
         const rows = await dbconfig_1.db
             .select()
@@ -149,8 +147,9 @@ const getChatMessages = async (req, res, next) => {
 };
 exports.getChatMessages = getChatMessages;
 const createChatMessage = async (req, res, next) => {
+    var _a;
     try {
-        const userId = req.auth.userId;
+        const userId = (_a = req.auth) === null || _a === void 0 ? void 0 : _a.userId;
         const { chatroomId } = req.params;
         const body = req.body;
         let metadata = body.metadata;
@@ -182,17 +181,17 @@ const createChatMessage = async (req, res, next) => {
 exports.createChatMessage = createChatMessage;
 // Admin endpoints for managing chatrooms
 const getAllChatroomsAdmin = async (req, res, next) => {
-    var _a, _b;
+    var _a, _b, _c, _d;
     try {
         const auth = req.auth;
-        if (!auth) {
+        if (!(auth === null || auth === void 0 ? void 0 : auth.role)) {
             return next(createHttpError(401, 'Unauthorized'));
         }
         if (auth.role !== 'admin' && auth.role !== 'super_admin') {
             return next(createHttpError(403, 'Forbidden: Admin access required'));
         }
-        const page = Math.max(parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10) || 1, 1);
-        const limit = Math.max(parseInt(String((_b = req.query.limit) !== null && _b !== void 0 ? _b : '50'), 10) || 50, 1);
+        const page = Math.max((_b = parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10)) !== null && _b !== void 0 ? _b : 1, 1);
+        const limit = Math.max((_d = parseInt(String((_c = req.query.limit) !== null && _c !== void 0 ? _c : '50'), 10)) !== null && _d !== void 0 ? _d : 50, 1);
         const offset = (page - 1) * limit;
         const rows = await dbconfig_1.db.select().from(schema_1.chatrooms).limit(limit).offset(offset);
         res.status(200).json({ data: rows, pagination: { page, limit } });
@@ -266,7 +265,7 @@ const deleteChatMessage = async (req, res, next) => {
         const message = existingMessage[0];
         // Check if user owns the message or is admin
         const auth = req.auth;
-        const isAdmin = auth && (auth.role === 'admin' || auth.role === 'super_admin');
+        const isAdmin = (auth === null || auth === void 0 ? void 0 : auth.role) && (auth.role === 'admin' || auth.role === 'super_admin');
         if (message.user_id !== userId && !isAdmin) {
             return next(createHttpError(403, 'You can only delete your own messages'));
         }
@@ -324,6 +323,51 @@ const addMessageReaction = async (req, res, next) => {
     }
 };
 exports.addMessageReaction = addMessageReaction;
+const getMessageReactions = async (req, res, next) => {
+    try {
+        const { messageId } = req.params;
+        // Get all reactions for the message
+        const reactions = await dbconfig_1.db
+            .select()
+            .from(schema_1.message_reactions)
+            .where((0, drizzle_orm_1.eq)(schema_1.message_reactions.message_id, messageId));
+        res.status(200).json({
+            data: reactions,
+            count: reactions.length
+        });
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getMessageReactions = getMessageReactions;
+const removeMessageReaction = async (req, res, next) => {
+    var _a;
+    try {
+        const { messageId } = req.params;
+        const { emoji } = req.query;
+        const userId = (_a = req.auth) === null || _a === void 0 ? void 0 : _a.userId;
+        if (!userId) {
+            return next(createHttpError(401, 'Unauthorized'));
+        }
+        if (!emoji) {
+            return next(createHttpError(400, 'Emoji parameter is required'));
+        }
+        // Remove the specific reaction
+        const result = await dbconfig_1.db
+            .delete(schema_1.message_reactions)
+            .where((0, drizzle_orm_1.sql) `${schema_1.message_reactions.message_id} = ${messageId} AND ${schema_1.message_reactions.user_id} = ${userId} AND ${schema_1.message_reactions.emoji} = ${emoji}`)
+            .returning();
+        if (result.length === 0) {
+            return next(createHttpError(404, 'Reaction not found'));
+        }
+        res.status(200).json({ message: 'Reaction removed successfully' });
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.removeMessageReaction = removeMessageReaction;
 const searchMessages = async (req, res, next) => {
     var _a;
     try {
@@ -421,17 +465,17 @@ const clearChatHistory = async (req, res, next) => {
 };
 exports.clearChatHistory = clearChatHistory;
 const getAllChatMessagesAdmin = async (req, res, next) => {
-    var _a, _b;
+    var _a, _b, _c, _d;
     try {
         const auth = req.auth;
-        if (!auth) {
+        if (!(auth === null || auth === void 0 ? void 0 : auth.role)) {
             return next(createHttpError(401, 'Unauthorized'));
         }
         if (auth.role !== 'admin' && auth.role !== 'super_admin') {
             return next(createHttpError(403, 'Forbidden: Admin access required'));
         }
-        const page = Math.max(parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10) || 1, 1);
-        const limit = Math.max(parseInt(String((_b = req.query.limit) !== null && _b !== void 0 ? _b : '100'), 10) || 100, 1);
+        const page = Math.max((_b = parseInt(String((_a = req.query.page) !== null && _a !== void 0 ? _a : '1'), 10)) !== null && _b !== void 0 ? _b : 1, 1);
+        const limit = Math.max((_d = parseInt(String((_c = req.query.limit) !== null && _c !== void 0 ? _c : '100'), 10)) !== null && _d !== void 0 ? _d : 100, 1);
         const offset = (page - 1) * limit;
         const rows = await dbconfig_1.db.select().from(schema_1.chat_messages).limit(limit).offset(offset);
         res.status(200).json({ data: rows, pagination: { page, limit } });
@@ -566,11 +610,11 @@ const inviteMember = async (req, res, next) => {
             .insert(schema_1.chatroomInvitationsTable)
             .values({
             chatroom_id: chatroomId,
-            invited_user_id: user_id || null,
-            invited_email: email || null,
+            invited_user_id: user_id !== null && user_id !== void 0 ? user_id : null,
+            invited_email: email !== null && email !== void 0 ? email : null,
             invitation_code: invitationCode,
             invited_by: currentUserId,
-            message: message || null,
+            message: message !== null && message !== void 0 ? message : null,
         })
             .returning();
         res.status(201).json(invitation);
@@ -627,7 +671,7 @@ const requestJoin = async (req, res, next) => {
             .values({
             chatroom_id: chatroomId,
             user_id: userId,
-            message: message || null,
+            message: message !== null && message !== void 0 ? message : null,
             status: 'pending',
         })
             .returning();
@@ -741,7 +785,7 @@ const rejectJoinRequest = async (req, res, next) => {
             status: 'rejected',
             reviewed_by: currentUserId,
             reviewed_at: new Date(),
-            response_message: reason || null
+            response_message: reason !== null && reason !== void 0 ? reason : null
         })
             .where((0, drizzle_orm_1.sql) `${schema_1.membershipRequestsTable.request_id} = ${requestId} AND ${schema_1.membershipRequestsTable.chatroom_id} = ${chatroomId} AND ${schema_1.membershipRequestsTable.status} = 'pending'`)
             .returning();

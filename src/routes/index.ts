@@ -23,7 +23,7 @@ router.use('/forums', forumsRouter);
 router.use('/enrollments', enrollmentsRouter);
 router.use('/chatrooms', chatRouter);
 router.use('/chats', chatsRouter);
-router.use('/chatrooms', membershipRouter); 
+router.use('/memberships', membershipRouter);
 router.use('/announcements', announcementsRouter);
 router.use('/admin', adminRouter);
 router.use('/webhooks', webhooksRouter);

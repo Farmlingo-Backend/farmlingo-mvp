@@ -446,7 +446,11 @@ const clearChatHistory = async (req, res, next) => {
             .from(schema_1.chatrooms)
             .where((0, drizzle_orm_1.eq)(schema_1.chatrooms.chatroom_id, chatroomId))
             .limit(1);
-        if ((chat === null || chat === void 0 ? void 0 : chat.chatroom_type) !== 'direct') {
+<<<<<<< HEAD
+        if (!chat || chat.chatroom_type !== 'direct') {
+=======
+        if (!chat || chat.chatroom_type !== 'direct') {
+>>>>>>> 08ae0961282c55c102567829b7a27ed4b0bffc90
             return next(createHttpError(400, 'Chat history can only be cleared for private conversations'));
         }
         // Soft delete all messages in the chat

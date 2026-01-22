@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Farmlingo Backend API
+=======
+## Farmlingo Backend (Node.js/TypeScript API)
+>>>>>>> 08ae0961282c55c102567829b7a27ed4b0bffc90
 
 [![Node.js](https://img.shields.io/badge/Node.js-16%2B-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue.svg)](https://www.typescriptlang.org/)
@@ -8,7 +12,38 @@
 
 A clean, modular, and scalable Node.js backend API for the Farmlingo platform. This backend provides a solid foundation with routing, middleware, environment configuration, and comprehensive API endpoints for agricultural education and community features.
 
+<<<<<<< HEAD
 ## 🚀 Quick Start
+=======
+## What This Backend Includes
+
+- Modular Express architecture
+- Health check endpoint (`/health`)
+- Built-in middleware: **helmet**, **cors**, **morgan**
+- Centralized configuration via `.env`
+- Error-handling middleware
+- Lightweight logger utility
+- Ready-to-use folder structure
+
+---
+
+# 1. Requirements
+
+Make sure the following are installed before setting up the backend:
+
+- **Node.js 16 or later**
+- **npm**
+
+---
+
+# 2. Installation & Setup
+
+Follow these steps to get the backend running locally.
+
+---
+
+## **Step 1 — Clone the project**
+>>>>>>> 08ae0961282c55c102567829b7a27ed4b0bffc90
 
 ```bash
 # Clone the repository
@@ -1150,6 +1185,7 @@ The admin panel provides comprehensive management capabilities:
 - Database connectivity verification
 - Service status monitoring
 
+<<<<<<< HEAD
 ---
 
 # 16. Recent Code Improvements
@@ -1243,6 +1279,9 @@ catch (err) {
 ---
 
 # 17. Sequence Diagram
+=======
+## 16. Sequence Diagram
+>>>>>>> 08ae0961282c55c102567829b7a27ed4b0bffc90
 
 The following sequence diagram visualizes major flows across authentication, courses, forums, chat, reports, and weather data.
 
@@ -1250,12 +1289,17 @@ The following sequence diagram visualizes major flows across authentication, cou
 
 If it does not render in your viewer, open the file directly at [Direct Sequence Diagram Link](https://www.mermaidchart.com/d/3668fe9a-9bf9-4a26-85c9-d106d2e41cf4).
 
+<<<<<<< HEAD
 ---
+=======
+## 17. Render Deployment
+>>>>>>> 08ae0961282c55c102567829b7a27ed4b0bffc90
 
 # 18. Render Deployment
 
 You can access the Swagger UI for the Farmlingo backend here:
 [Open Swagger UI](https://farmlingo-backend-swagger.onrender.com/api-docs/#/)
+<<<<<<< HEAD
 
 ---
 
@@ -1340,3 +1384,5 @@ For questions, issues, or support:
 ---
 
 **© 2026 Farmlingo. All rights reserved.**
+=======
+>>>>>>> 08ae0961282c55c102567829b7a27ed4b0bffc90

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { authenticate } from '../middlewares/auth';
+import { clerkAuth } from '../middlewares/clerk';
 import {
   getLessons,
   createLesson,
@@ -206,10 +206,10 @@ const upload = multer();
 export default router;
 // Runtime endpoints
 router.get('/', getLessons);
-router.post('/', authenticate, upload.none(), createLesson);
+router.post('/', clerkAuth, upload.none(), createLesson);
 router.get('/:lessonId', getLessonById);
-router.put('/:lessonId', authenticate, upload.none(), updateLesson);
-router.delete('/:lessonId', authenticate, deleteLesson);
+router.put('/:lessonId', clerkAuth, upload.none(), updateLesson);
+router.delete('/:lessonId', clerkAuth, deleteLesson);
 
 // Admin endpoints
-router.get('/admin/all', authenticate, getAllLessonsAdmin);
+router.get('/admin/all', clerkAuth, getAllLessonsAdmin);

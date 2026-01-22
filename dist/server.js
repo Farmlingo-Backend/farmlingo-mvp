@@ -6,17 +6,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const http_1 = __importDefault(require("http"));
 const app_1 = __importDefault(require("./src/app"));
 const config_1 = require("./src/config/config");
+const websocket_service_1 = require("./src/services/websocket.service");
+const detect_port_1 = __importDefault(require("detect-port"));
 const server = http_1.default.createServer(app_1.default);
-server.listen(config_1.port, () => {
-    // eslint-disable-next-line no-console(with this you will see the full URL in the console.)
-    // console.log(`${appName} listening on port ${port} — env=${process.env.NODE_ENV || 'development'}`);
-    // eslint-disable-next-line no-console(this help you see the full URL in the console.)
-    console.log(`${config_1.appName} listening at http://localhost:${config_1.port} — env=${process.env.NODE_ENV || 'development'}`);
-    // With this you will see the Swagger UI url
-    console.log(`Swagger UI: http://localhost:${config_1.port}/api-docs/#/`);
-});
+// Initialize WebSocket service
+websocket_service_1.websocketService.initialize(server);
+const startServer = async () => {
+    try {
+        const availablePort = await (0, detect_port_1.default)(config_1.port);
+        if (availablePort !== config_1.port) {
+            console.log(`Port ${config_1.port} is busy. Using port ${availablePort} instead.`);
+        }
+        server.listen(availablePort, () => {
+            console.log(`${config_1.appName} listening at http://localhost:${availablePort} — env=${process.env.NODE_ENV || 'development'}`);
+            console.log(`Swagger UI: http://localhost:${availablePort}/api-docs/#/`);
+            console.log(`WebSocket server initialized`);
+        });
+    }
+    catch (err) {
+        console.error('Failed to start server:', err);
+        process.exit(1);
+    }
+};
+startServer();
 process.on('SIGINT', () => {
-    // eslint-disable-next-line no-console
     console.log('SIGINT received: shutting down');
     server.close(() => process.exit(0));
 });

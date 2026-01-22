@@ -2,7 +2,7 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '../db/dbconfig';
 import { course_enrollments, NewCourseEnrollment, CourseEnrollment } from '../db/schema';
 
-export class EnrollmentRepository {
+export class CourseEnrollmentRepository {
     async findAll(limit: number, offset: number, userId?: string, courseId?: string): Promise<CourseEnrollment[]> {
         if (userId && courseId) {
             return await db
@@ -31,6 +31,13 @@ export class EnrollmentRepository {
 
     async findById(enrollmentId: string): Promise<CourseEnrollment | undefined> {
         const rows = await db.select().from(course_enrollments).where(eq(course_enrollments.enrollment_id, enrollmentId)).limit(1);
+        return rows[0];
+    }
+
+    async findByUserAndCourse(userId: string, courseId: string): Promise<CourseEnrollment | undefined> {
+        const rows = await db.select().from(course_enrollments)
+            .where(and(eq(course_enrollments.user_id, userId), eq(course_enrollments.course_id, courseId)))
+            .limit(1);
         return rows[0];
     }
 

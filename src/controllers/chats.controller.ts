@@ -73,6 +73,30 @@ export const getMessages = async (
     }
 };
 
+export const getUserChats = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const auth = (req as any).auth as AuthContext;
+
+        if (!auth) {
+            return next(createHttpError(401, 'Unauthorized'));
+        }
+
+        // Get user's direct chats
+        const chats = await chatService.getUserChats(auth.userId, 'direct');
+
+        res.status(200).json({
+            success: true,
+            data: chats
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export const sendMessage = async (
     req: Request,
     res: Response,

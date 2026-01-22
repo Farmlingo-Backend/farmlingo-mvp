@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const multer_1 = __importDefault(require("multer"));
-const auth_1 = require("../middlewares/auth");
+const clerk_1 = require("../middlewares/clerk");
 const lessons_controller_1 = require("../controllers/lessons.controller");
 const router = (0, express_1.Router)();
 const upload = (0, multer_1.default)();
@@ -200,9 +200,9 @@ const upload = (0, multer_1.default)();
 exports.default = router;
 // Runtime endpoints
 router.get('/', lessons_controller_1.getLessons);
-router.post('/', auth_1.authenticate, upload.none(), lessons_controller_1.createLesson);
+router.post('/', clerk_1.clerkAuth, upload.none(), lessons_controller_1.createLesson);
 router.get('/:lessonId', lessons_controller_1.getLessonById);
-router.put('/:lessonId', auth_1.authenticate, upload.none(), lessons_controller_1.updateLesson);
-router.delete('/:lessonId', auth_1.authenticate, lessons_controller_1.deleteLesson);
+router.put('/:lessonId', clerk_1.clerkAuth, upload.none(), lessons_controller_1.updateLesson);
+router.delete('/:lessonId', clerk_1.clerkAuth, lessons_controller_1.deleteLesson);
 // Admin endpoints
-router.get('/admin/all', auth_1.authenticate, lessons_controller_1.getAllLessonsAdmin);
+router.get('/admin/all', clerk_1.clerkAuth, lessons_controller_1.getAllLessonsAdmin);

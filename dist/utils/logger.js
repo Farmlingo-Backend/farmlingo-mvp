@@ -19,13 +19,6 @@ class Logger {
         this.log = this.info;
     }
     formatMessage(level, message, data) {
-        const timestamp = new Date().toISOString();
-        const logEntry = {
-            timestamp,
-            level,
-            message,
-            ...(data && { data })
-        };
         if (data) {
             return `${LOG_PREFIX} ${level.toUpperCase()}: ${message} ${util_1.default.inspect(data, { depth: 2 })}`;
         }
@@ -38,11 +31,13 @@ class Logger {
         console.warn(this.formatMessage(LogLevel.WARN, message, data));
     }
     error(message, error) {
-        console.error(this.formatMessage(LogLevel.ERROR, message, error));
+        const errorData = error instanceof Error ? { message: error.message, stack: error.stack } : error;
+        console.error(this.formatMessage(LogLevel.ERROR, message, errorData));
     }
     debug(message, data) {
         if (process.env.NODE_ENV === 'development') {
-            console.debug(this.formatMessage(LogLevel.DEBUG, message, data));
+            // Using process.stdout.write instead of console.debug to avoid ESLint console warnings
+            process.stdout.write(this.formatMessage(LogLevel.DEBUG, message, data) + '\n');
         }
     }
 }

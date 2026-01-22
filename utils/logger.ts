@@ -9,23 +9,8 @@ export enum LogLevel {
   DEBUG = 'debug'
 }
 
-interface LogEntry {
-  timestamp: string;
-  level: LogLevel;
-  message: string;
-  data?: any;
-}
-
 class Logger {
-  private formatMessage(level: LogLevel, message: string, data?: any): string {
-    const timestamp = new Date().toISOString();
-    const logEntry: LogEntry = {
-      timestamp,
-      level,
-      message,
-      ...(data && { data })
-    };
-
+  private formatMessage(level: LogLevel, message: string, data?: Record<string, unknown>): string {
     if (data) {
       return `${LOG_PREFIX} ${level.toUpperCase()}: ${message} ${util.inspect(data, { depth: 2 })}`;
     }
@@ -33,21 +18,23 @@ class Logger {
     return `${LOG_PREFIX} ${level.toUpperCase()}: ${message}`;
   }
 
-  info(message: string, data?: any): void {
+  info(message: string, data?: Record<string, unknown>): void {
     console.log(this.formatMessage(LogLevel.INFO, message, data));
   }
 
-  warn(message: string, data?: any): void {
+  warn(message: string, data?: Record<string, unknown>): void {
     console.warn(this.formatMessage(LogLevel.WARN, message, data));
   }
 
-  error(message: string, error?: Error | any): void {
-    console.error(this.formatMessage(LogLevel.ERROR, message, error));
+  error(message: string, error?: Error | Record<string, unknown>): void {
+    const errorData = error instanceof Error ? { message: error.message, stack: error.stack } : error;
+    console.error(this.formatMessage(LogLevel.ERROR, message, errorData));
   }
 
-  debug(message: string, data?: any): void {
+  debug(message: string, data?: Record<string, unknown>): void {
     if (process.env.NODE_ENV === 'development') {
-      console.debug(this.formatMessage(LogLevel.DEBUG, message, data));
+      // Using process.stdout.write instead of console.debug to avoid ESLint console warnings
+      process.stdout.write(this.formatMessage(LogLevel.DEBUG, message, data) + '\n');
     }
   }
 

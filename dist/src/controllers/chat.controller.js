@@ -211,7 +211,7 @@ const updateChatMessage = async (req, res, next) => {
         if (!userId) {
             return next(createHttpError(401, 'Unauthorized'));
         }
-        if (!content || !content.trim()) {
+        if (!(content === null || content === void 0 ? void 0 : content.trim())) {
             return next(createHttpError(400, 'Message content is required'));
         }
         // Get existing message to check ownership
@@ -446,7 +446,7 @@ const clearChatHistory = async (req, res, next) => {
             .from(schema_1.chatrooms)
             .where((0, drizzle_orm_1.eq)(schema_1.chatrooms.chatroom_id, chatroomId))
             .limit(1);
-        if (!chat || chat.chatroom_type !== 'direct') {
+        if ((chat === null || chat === void 0 ? void 0 : chat.chatroom_type) !== 'direct') {
             return next(createHttpError(400, 'Chat history can only be cleared for private conversations'));
         }
         // Soft delete all messages in the chat

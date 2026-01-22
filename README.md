@@ -5,6 +5,27 @@ This backend provides a solid foundation with routing, middleware, environment c
 
 ---
 
+## 🚀 Recent Updates & Improvements
+
+### ✅ Critical Bug Fixes (January 2026)
+
+#### 1. **Authentication Standardization**
+- **Fixed**: Mixed authentication middleware usage (`authenticate` vs `clerkAuth`)
+- **Impact**: All routes now use consistent `clerkAuth` middleware
+- **Files Updated**: `src/routes/courses.route.ts`, `src/routes/lessons.route.ts`
+
+#### 2. **MVC Architecture Compliance**
+- **Fixed**: Weather routes contained business logic directly in route handlers
+- **Impact**: Proper separation of concerns with controllers handling business logic
+- **Files Updated**: `src/routes/weather.route.ts`, `src/controllers/weather.controller.ts` (NEW)
+
+#### 3. **Error Handling Standardization**
+- **Fixed**: Inconsistent error handling patterns across endpoints
+- **Impact**: All controllers now use `next(err)` pattern for consistent error handling
+- **Files Updated**: All controller files
+
+---
+
 ## What This Backend Includes
 
 - Modular Express architecture
@@ -465,7 +486,99 @@ The admin panel provides comprehensive management capabilities:
 - Database connectivity verification
 - Service status monitoring
 
-## 16. Sequence Diagram
+---
+
+# 16. Recent Code Improvements
+
+## 16.1 Authentication Standardization
+
+**Before:**
+```typescript
+// courses.route.ts
+import { authenticate } from '../middlewares/auth';
+router.post('/', authenticate, upload.none(), createCourse);
+
+// lessons.route.ts
+import { authenticate } from '../middlewares/auth';
+router.post('/', authenticate, upload.none(), createLesson);
+
+// Other routes
+import { clerkAuth } from '../middlewares/clerk';
+router.post('/', clerkAuth, upload.none(), createChatroom);
+```
+
+**After:**
+```typescript
+// All routes now consistently use clerkAuth
+import { clerkAuth } from '../middlewares/clerk';
+router.post('/', clerkAuth, createCourse);
+router.post('/', clerkAuth, createLesson);
+router.post('/', clerkAuth, createChatroom);
+```
+
+## 16.2 MVC Architecture Implementation
+
+**Before (weather.route.ts):**
+```typescript
+router.post('/', clerkAuth, async (req: Request, res: Response) => {
+    // Business logic directly in route
+    const auth = (req as any).auth;
+    if (!auth || (auth.role !== 'admin' && auth.role !== 'super_admin')) {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+    const weatherData: NewWeatherData = req.body;
+    const createdWeather = await weatherService.createWeatherData(weatherData);
+    res.status(201).json(createdWeather);
+});
+```
+
+**After (weather.route.ts + weather.controller.ts):**
+```typescript
+// weather.route.ts - Clean route definition
+router.post('/', clerkAuth, requireAdmin, createWeather);
+
+// weather.controller.ts - Business logic
+export const createWeather = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const weatherData: NewWeatherData = req.body;
+    const createdWeather = await weatherService.createWeatherData(weatherData);
+    res.status(201).json(createdWeather);
+  } catch (err) {
+    next(err as Error);
+  }
+};
+```
+
+## 16.3 Error Handling Standardization
+
+**Before:**
+```typescript
+// Mixed error handling patterns
+catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Failed' });
+}
+
+catch (err) {
+    next(err as Error);
+}
+```
+
+**After:**
+```typescript
+// Consistent error handling
+catch (err) {
+    next(err as Error);
+}
+```
+
+---
+
+# 17. Sequence Diagram
 
 The following sequence diagram visualizes major flows across authentication, courses, forums, chat, reports, and weather data.
 
@@ -473,7 +586,93 @@ The following sequence diagram visualizes major flows across authentication, cou
 
 If it does not render in your viewer, open the file directly at [Direct Sequence Diagram Link](https://www.mermaidchart.com/d/3668fe9a-9bf9-4a26-85c9-d106d2e41cf4).
 
-## 17. Render Deployment
+---
 
-You can access the Swagger UI for the Farmlingo backend here:  
+# 18. Render Deployment
+
+You can access the Swagger UI for the Farmlingo backend here:
 [Open Swagger UI](https://farmlingo-backend-swagger.onrender.com/api-docs/#/)
+
+---
+
+# 19. API Endpoint Summary
+
+## Authentication
+- `POST /api/users/login` - User login
+- `GET /api/users/me` - Get authenticated user profile
+
+## Courses
+- `GET /api/courses` - List all courses
+- `POST /api/courses` - Create new course
+- `GET /api/courses/{courseId}` - Get course details
+- `PUT /api/courses/{courseId}` - Update course
+- `DELETE /api/courses/{courseId}` - Delete course
+
+## Lessons
+- `GET /api/lessons` - List all lessons
+- `POST /api/lessons` - Create new lesson
+- `GET /api/lessons/{lessonId}` - Get lesson details
+- `PUT /api/lessons/{lessonId}` - Update lesson
+- `DELETE /api/lessons/{lessonId}` - Delete lesson
+
+## Weather
+- `POST /api/weather` - Create weather data (Admin only)
+- `GET /api/weather/{weatherId}` - Get weather data by ID
+- `GET /api/weather/location/{locationId}` - Get weather by location
+- `GET /api/weather/location/{locationId}/latest` - Get latest weather
+- `GET /api/weather/location/{locationId}/agricultural` - Get agricultural data
+- `GET /api/weather/location/{locationId}/forecast` - Get weather forecast
+- `PUT /api/weather/{weatherId}` - Update weather data (Admin only)
+- `DELETE /api/weather/{weatherId}` - Delete weather data (Admin only)
+
+## Admin
+- `GET /admin/dashboard` - Admin dashboard overview
+- `GET /admin/reports` - Admin reports and analytics
+- `GET /admin/users` - List all users (Admin only)
+- `PUT /admin/users/{userId}/suspend` - Suspend user (Admin only)
+- `PUT /admin/users/{userId}/activate` - Activate user (Admin only)
+- `PUT /admin/users/{userId}/role` - Change user role (Super Admin only)
+- `DELETE /admin/users/{userId}` - Delete user (Super Admin only)
+
+---
+
+# 20. Contribution Guidelines
+
+We welcome contributions to the Farmlingo backend! Please follow these guidelines:
+
+## 20.1 Code Style
+- Follow existing code patterns and architecture
+- Use TypeScript interfaces for all data structures
+- Follow MVC pattern (Routes → Controllers → Services → Repositories)
+- Use consistent error handling with `next(err)` pattern
+
+## 20.2 Commit Messages
+- Use clear, descriptive commit messages
+- Follow conventional commits format: `feat:`, `fix:`, `docs:`, `refactor:`, etc.
+- Reference issues when applicable: `fixes #123`
+
+## 20.3 Pull Requests
+- Create PRs from feature branches
+- Include detailed description of changes
+- Reference related issues
+- Ensure all tests pass
+- Update documentation as needed
+
+## 20.4 Testing
+- Add tests for new features
+- Ensure existing tests continue to pass
+- Test edge cases and error conditions
+
+---
+
+# 21. Support & Contact
+
+For questions, issues, or support:
+
+- **GitHub Issues**: https://github.com/Farmlingo-Backend/farmlingo-mvp/issues
+- **Email**: support@farmlingo.com
+- **Documentation**: https://farmlingo-backend-swagger.onrender.com/api-docs/#/
+
+---
+
+**© 2026 Farmlingo. All rights reserved.**

@@ -24,7 +24,7 @@ export interface ClerkAuthContext {
 import { db } from '../db/dbconfig';
 import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
-import { AuthContext } from './auth';
+import { AuthContext } from '../types/rbac';
 
 /**
  * Middleware: Verify Clerk Token ONLY

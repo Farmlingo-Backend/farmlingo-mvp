@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.message_attachments = exports.chat_messages = exports.chatroom_members = exports.chatrooms = exports.post_read_status = exports.post_reactions = exports.comments = exports.forum_posts = exports.forums = exports.quiz_answers = exports.quiz_attempts = exports.question_options = exports.quiz_questions = exports.quizzes = exports.lesson_media = exports.course_certificates = exports.lesson_progress = exports.course_enrollments = exports.lessons = exports.course_ratings = exports.courses = exports.locations = exports.users = exports.logLevelEnum = exports.moduleEnum = exports.notificationTypeEnum = exports.membershipActionEnum = exports.invitationStatusEnum = exports.membershipRequestStatusEnum = exports.actionTypeEnum = exports.actionTakenEnum = exports.reportStatusEnum = exports.reportTypeEnum = exports.attachmentFileTypeEnum = exports.messageTypeEnum = exports.chatMemberStatusEnum = exports.chatMemberRoleEnum = exports.chatroomStatusEnum = exports.chatroomTypeEnum = exports.reactionTypeEnum = exports.commentStatusEnum = exports.forumStatusEnum = exports.quizAttemptStatusEnum = exports.quizQuestionTypeEnum = exports.mediaTypeEnum = exports.lessonProgressStatusEnum = exports.enrollmentStatusEnum = exports.lessonStatusEnum = exports.courseStatusEnum = exports.rolesEnum = void 0;
-exports.courseCertificatesTable = exports.lessonProgressTable = exports.courseEnrollmentsTable = exports.lessonsTable = exports.courseRatingsTable = exports.coursesTable = exports.locationsTable = exports.usersTable = exports.weatherDataRelations = exports.announcementsRelations = exports.systemLogsRelations = exports.userReportsRelations = exports.notificationsRelations = exports.chatroomInvitationsRelations = exports.membershipLogsRelations = exports.membershipRequestsRelations = exports.messageReactionsRelations = exports.messageReadStatusRelations = exports.messageAttachmentsRelations = exports.chatMessagesRelations = exports.chatroomMembersRelations = exports.chatroomsRelations = exports.postReadStatusRelations = exports.postReactionsRelations = exports.commentsRelations = exports.forumPostsRelations = exports.forumsRelations = exports.quizAnswersRelations = exports.quizAttemptsRelations = exports.questionOptionsRelations = exports.quizQuestionsRelations = exports.quizzesRelations = exports.lessonMediaRelations = exports.courseCertificatesRelations = exports.lessonProgressRelations = exports.courseEnrollmentsRelations = exports.lessonsRelations = exports.coursesRelations = exports.locationsRelations = exports.usersRelations = exports.notifications = exports.chatroom_invitations = exports.membership_logs = exports.membership_requests = exports.weather_data = exports.announcements = exports.system_logs = exports.user_reports = exports.message_reactions = exports.message_read_status = void 0;
-exports.invitation_status_enum = exports.membership_request_status_enum = exports.log_level_enum = exports.module_enum = exports.action_type_enum = exports.action_taken_enum = exports.report_status_enum = exports.report_type_enum = exports.attachment_file_type_enum = exports.message_type_enum = exports.chat_member_status_enum = exports.chat_member_role_enum = exports.chatroom_status_enum = exports.chatroom_type_enum = exports.reaction_type_enum = exports.comment_status_enum = exports.forum_status_enum = exports.quiz_attempt_status_enum = exports.quiz_question_type_enum = exports.media_type_enum = exports.lesson_progress_status_enum = exports.enrollment_status_enum = exports.lesson_status_enum = exports.course_status_enum = exports.roles_enum = exports.weatherDataTable = exports.announcementsTable = exports.systemLogsTable = exports.userReportsTable = exports.notificationsTable = exports.chatroomInvitationsTable = exports.membershipLogsTable = exports.membershipRequestsTable = exports.messageReactionsTable = exports.messageReadStatusTable = exports.messageAttachmentsTable = exports.chatMessagesTable = exports.chatroomMembersTable = exports.chatroomsTable = exports.postReadStatusTable = exports.postReactionsTable = exports.commentsTable = exports.forumPostsTable = exports.forumsTable = exports.quizAnswersTable = exports.quizAttemptsTable = exports.questionOptionsTable = exports.quizQuestionsTable = exports.quizzesTable = exports.lessonMediaTable = void 0;
-exports.notification_type_enum = exports.membership_action_enum = void 0;
+exports.chat_messages = exports.chatroom_members = exports.chatrooms = exports.post_read_status = exports.post_reactions = exports.comments = exports.forum_posts = exports.forums = exports.quiz_answers = exports.quiz_attempts = exports.question_options = exports.quiz_questions = exports.quizzes = exports.lesson_media = exports.course_certificates = exports.lesson_progress = exports.course_enrollments = exports.lessons = exports.course_ratings = exports.courses = exports.locations = exports.institutions = exports.users = exports.logLevelEnum = exports.moduleEnum = exports.notificationTypeEnum = exports.membershipActionEnum = exports.invitationStatusEnum = exports.membershipRequestStatusEnum = exports.actionTypeEnum = exports.actionTakenEnum = exports.reportStatusEnum = exports.reportTypeEnum = exports.attachmentFileTypeEnum = exports.messageTypeEnum = exports.chatMemberStatusEnum = exports.chatMemberRoleEnum = exports.chatroomStatusEnum = exports.chatroomTypeEnum = exports.reactionTypeEnum = exports.commentStatusEnum = exports.forumStatusEnum = exports.quizAttemptStatusEnum = exports.quizQuestionTypeEnum = exports.mediaTypeEnum = exports.lessonProgressStatusEnum = exports.enrollmentStatusEnum = exports.lessonStatusEnum = exports.courseStatusEnum = exports.rolesEnum = void 0;
+exports.courseEnrollmentsTable = exports.lessonsTable = exports.courseRatingsTable = exports.coursesTable = exports.locationsTable = exports.usersTable = exports.weatherDataRelations = exports.announcementsRelations = exports.systemLogsRelations = exports.userReportsRelations = exports.notificationsRelations = exports.chatroomInvitationsRelations = exports.membershipLogsRelations = exports.membershipRequestsRelations = exports.messageReactionsRelations = exports.messageReadStatusRelations = exports.messageAttachmentsRelations = exports.chatMessagesRelations = exports.chatroomMembersRelations = exports.chatroomsRelations = exports.postReadStatusRelations = exports.postReactionsRelations = exports.commentsRelations = exports.forumPostsRelations = exports.forumsRelations = exports.quizAnswersRelations = exports.quizAttemptsRelations = exports.questionOptionsRelations = exports.quizQuestionsRelations = exports.quizzesRelations = exports.lessonMediaRelations = exports.courseCertificatesRelations = exports.lessonProgressRelations = exports.courseEnrollmentsRelations = exports.lessonsRelations = exports.coursesRelations = exports.locationsRelations = exports.institutionsRelations = exports.usersRelations = exports.notifications = exports.chatroom_invitations = exports.membership_logs = exports.membership_requests = exports.weather_data = exports.announcements = exports.system_logs = exports.user_reports = exports.message_reactions = exports.message_read_status = exports.message_attachments = void 0;
+exports.log_level_enum = exports.module_enum = exports.action_type_enum = exports.action_taken_enum = exports.report_status_enum = exports.report_type_enum = exports.attachment_file_type_enum = exports.message_type_enum = exports.chat_member_status_enum = exports.chat_member_role_enum = exports.chatroom_status_enum = exports.chatroom_type_enum = exports.reaction_type_enum = exports.comment_status_enum = exports.forum_status_enum = exports.quiz_attempt_status_enum = exports.quiz_question_type_enum = exports.media_type_enum = exports.lesson_progress_status_enum = exports.enrollment_status_enum = exports.lesson_status_enum = exports.course_status_enum = exports.roles_enum = exports.weatherDataTable = exports.announcementsTable = exports.systemLogsTable = exports.userReportsTable = exports.notificationsTable = exports.chatroomInvitationsTable = exports.membershipLogsTable = exports.membershipRequestsTable = exports.messageReactionsTable = exports.messageReadStatusTable = exports.messageAttachmentsTable = exports.chatMessagesTable = exports.chatroomMembersTable = exports.chatroomsTable = exports.postReadStatusTable = exports.postReactionsTable = exports.commentsTable = exports.forumPostsTable = exports.forumsTable = exports.quizAnswersTable = exports.quizAttemptsTable = exports.questionOptionsTable = exports.quizQuestionsTable = exports.quizzesTable = exports.lessonMediaTable = exports.courseCertificatesTable = exports.lessonProgressTable = void 0;
+exports.notification_type_enum = exports.membership_action_enum = exports.invitation_status_enum = exports.membership_request_status_enum = void 0;
 // src/db/schema.ts
 const pg_core_1 = require("drizzle-orm/pg-core");
 const drizzle_orm_1 = require("drizzle-orm");
@@ -13,7 +13,8 @@ const drizzle_orm_1 = require("drizzle-orm");
 exports.rolesEnum = (0, pg_core_1.pgEnum)("roles", [
     "student",
     "farmer",
-    "admin",
+    "instructor",
+    "institution_admin",
     "super_admin",
 ]);
 exports.roles_enum = exports.rolesEnum;
@@ -206,6 +207,7 @@ exports.users = (0, pg_core_1.pgTable)("users", {
     user_id: (0, pg_core_1.uuid)("user_id").primaryKey().defaultRandom(),
     clerk_user_id: (0, pg_core_1.varchar)("clerk_user_id", { length: 128 }).unique(),
     role: (0, exports.rolesEnum)("role").default("student").notNull(), // ADDED for RBAC
+    institution_id: (0, pg_core_1.uuid)("institution_id"), // Nullable for Super Admin
     email: (0, pg_core_1.varchar)("email", { length: 320 }).notNull().unique(),
     first_name: (0, pg_core_1.varchar)("first_name", { length: 128 }),
     last_name: (0, pg_core_1.varchar)("last_name", { length: 128 }),
@@ -227,6 +229,21 @@ exports.users = (0, pg_core_1.pgTable)("users", {
 ]);
 exports.usersTable = exports.users;
 /**
+ * INSTITUTIONS
+ */
+exports.institutions = (0, pg_core_1.pgTable)("institutions", {
+    institution_id: (0, pg_core_1.uuid)("institution_id").primaryKey().defaultRandom(),
+    name: (0, pg_core_1.varchar)("name", { length: 256 }).notNull(),
+    description: (0, pg_core_1.text)("description"),
+    logo_url: (0, pg_core_1.varchar)("logo_url", { length: 1000 }),
+    email_domain: (0, pg_core_1.varchar)("email_domain", { length: 128 }), // Optional: restrict to institutional emails
+    created_by: (0, pg_core_1.uuid)("created_by").notNull(), // Super Admin who created this institution
+    created_at: (0, pg_core_1.timestamp)("created_at", { withTimezone: true })
+        .defaultNow()
+        .notNull(),
+    updated_at: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }),
+});
+/**
  * LOCATIONS
  */
 exports.locations = (0, pg_core_1.pgTable)("locations", {
@@ -246,6 +263,7 @@ exports.locationsTable = exports.locations;
  */
 exports.courses = (0, pg_core_1.pgTable)("courses", {
     course_id: (0, pg_core_1.uuid)("course_id").primaryKey().defaultRandom(),
+    institution_id: (0, pg_core_1.uuid)("institution_id"), // Institution that owns this course
     title: (0, pg_core_1.varchar)("title", { length: 512 }).notNull(),
     description: (0, pg_core_1.text)("description"),
     category: (0, pg_core_1.varchar)("category", { length: 128 }),
@@ -284,6 +302,7 @@ exports.courseRatingsTable = exports.course_ratings;
 exports.lessons = (0, pg_core_1.pgTable)("lessons", {
     lesson_id: (0, pg_core_1.uuid)("lesson_id").primaryKey().defaultRandom(),
     course_id: (0, pg_core_1.uuid)("course_id").notNull(),
+    institution_id: (0, pg_core_1.uuid)("institution_id"), // Institution that owns this lesson
     title: (0, pg_core_1.varchar)("title", { length: 512 }).notNull(),
     description: (0, pg_core_1.text)("description"),
     category: (0, pg_core_1.varchar)("category", { length: 128 }),
@@ -306,6 +325,7 @@ exports.course_enrollments = (0, pg_core_1.pgTable)("course_enrollments", {
     enrollment_id: (0, pg_core_1.uuid)("enrollment_id").primaryKey().defaultRandom(),
     user_id: (0, pg_core_1.uuid)("user_id").notNull(),
     course_id: (0, pg_core_1.uuid)("course_id").notNull(),
+    institution_id: (0, pg_core_1.uuid)("institution_id"), // Institution that owns this enrollment
     enrollment_status: (0, exports.enrollmentStatusEnum)("enrollment_status").default("not_started"),
     enrolled_at: (0, pg_core_1.timestamp)("enrolled_at", { withTimezone: true }).defaultNow(),
     completed_at: (0, pg_core_1.timestamp)("completed_at", { withTimezone: true }),
@@ -457,6 +477,7 @@ exports.quizAnswersTable = exports.quiz_answers;
  */
 exports.forums = (0, pg_core_1.pgTable)("forums", {
     forum_id: (0, pg_core_1.uuid)("forum_id").primaryKey().defaultRandom(),
+    institution_id: (0, pg_core_1.uuid)("institution_id"), // Institution that owns this forum
     name: (0, pg_core_1.varchar)("name", { length: 256 }).notNull(),
     description: (0, pg_core_1.text)("description"),
     slug: (0, pg_core_1.varchar)("slug", { length: 256 }).notNull(),
@@ -551,6 +572,7 @@ exports.postReadStatusTable = exports.post_read_status;
  */
 exports.chatrooms = (0, pg_core_1.pgTable)("chatrooms", {
     chatroom_id: (0, pg_core_1.uuid)("chatroom_id").primaryKey().defaultRandom(),
+    institution_id: (0, pg_core_1.uuid)("institution_id"), // Institution that owns this chatroom
     chatroom_type: (0, exports.chatroomTypeEnum)("chatroom_type").notNull(),
     name: (0, pg_core_1.varchar)("name", { length: 256 }),
     description: (0, pg_core_1.text)("description"),
@@ -697,6 +719,7 @@ exports.systemLogsTable = exports.system_logs;
  */
 exports.announcements = (0, pg_core_1.pgTable)("announcements", {
     announcement_id: (0, pg_core_1.uuid)("announcement_id").primaryKey().defaultRandom(),
+    institution_id: (0, pg_core_1.uuid)("institution_id"), // Institution that owns this announcement
     title: (0, pg_core_1.varchar)("title", { length: 512 }).notNull(),
     content: (0, pg_core_1.text)("content").notNull(),
     created_by: (0, pg_core_1.uuid)("created_by").notNull(),
@@ -798,7 +821,7 @@ exports.notificationsTable = exports.notifications;
  * can be used by service code. This is verbose but helps type-safety.
  */
 /* Users relations */
-exports.usersRelations = (0, drizzle_orm_1.relations)(exports.users, ({ many }) => ({
+exports.usersRelations = (0, drizzle_orm_1.relations)(exports.users, ({ many, one }) => ({
     // user -> courses created
     courses_created: many(exports.courses),
     // user -> forum posts
@@ -811,6 +834,15 @@ exports.usersRelations = (0, drizzle_orm_1.relations)(exports.users, ({ many }) 
     ratings: many(exports.course_ratings),
     // user -> system logs
     system_logs: many(exports.system_logs),
+    // user -> institution
+    institution: one(exports.institutions, { fields: [exports.users.institution_id], references: [exports.institutions.institution_id] }),
+}));
+/* Institutions relations */
+exports.institutionsRelations = (0, drizzle_orm_1.relations)(exports.institutions, ({ many, one }) => ({
+    // institution -> users
+    users: many(exports.users),
+    // institution -> creator (Super Admin)
+    creator: one(exports.users, { fields: [exports.institutions.created_by], references: [exports.users.user_id] }),
 }));
 /* Locations relations */
 exports.locationsRelations = (0, drizzle_orm_1.relations)(exports.locations, ({ many }) => ({

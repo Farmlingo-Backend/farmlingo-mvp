@@ -12,38 +12,7 @@
 
 A clean, modular, and scalable Node.js backend API for the Farmlingo platform. This backend provides a solid foundation with routing, middleware, environment configuration, and comprehensive API endpoints for agricultural education and community features.
 
-<<<<<<< HEAD
 ## 🚀 Quick Start
-=======
-## What This Backend Includes
-
-- Modular Express architecture
-- Health check endpoint (`/health`)
-- Built-in middleware: **helmet**, **cors**, **morgan**
-- Centralized configuration via `.env`
-- Error-handling middleware
-- Lightweight logger utility
-- Ready-to-use folder structure
-
----
-
-# 1. Requirements
-
-Make sure the following are installed before setting up the backend:
-
-- **Node.js 16 or later**
-- **npm**
-
----
-
-# 2. Installation & Setup
-
-Follow these steps to get the backend running locally.
-
----
-
-## **Step 1 — Clone the project**
->>>>>>> 08ae0961282c55c102567829b7a27ed4b0bffc90
 
 ```bash
 # Clone the repository

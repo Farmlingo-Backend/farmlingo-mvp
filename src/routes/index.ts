@@ -10,6 +10,8 @@ import chatsRouter from './chats.route'; // Direct chat
 import membershipRouter from './membership.route';
 import announcementsRouter from './announcements.route';
 import adminRouter from './admin.route';
+import superAdminRouter from './super-admin.route'; // Super Admin routes
+import institutionAdminRouter from './institution-admin.route'; // Institution Admin routes
 import webhooksRouter from './webhooks.route'; // Clerk webhooks
 import weatherRouter from './weather.route'; // Weather data API
 
@@ -26,6 +28,8 @@ router.use('/chats', chatsRouter);
 router.use('/memberships', membershipRouter);
 router.use('/announcements', announcementsRouter);
 router.use('/admin', adminRouter);
+router.use('/super-admin', superAdminRouter);
+router.use('/institution-admin', institutionAdminRouter);
 router.use('/webhooks', webhooksRouter);
 router.use('/weather', weatherRouter);
 

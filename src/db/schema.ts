@@ -20,7 +20,8 @@ import { InferModel } from "drizzle-orm";
 export const rolesEnum = pgEnum("roles", [
   "student",
   "farmer",
-  "admin",
+  "instructor",
+  "institution_admin",
   "super_admin",
 ]);
 
@@ -216,6 +217,7 @@ export const users = pgTable(
     user_id: uuid("user_id").primaryKey().defaultRandom(),
     clerk_user_id: varchar("clerk_user_id", { length: 128 }).unique(),
     role: rolesEnum("role").default("student").notNull(), // ADDED for RBAC
+    institution_id: uuid("institution_id"), // Nullable for Super Admin
     email: varchar("email", { length: 320 }).notNull().unique(),
     first_name: varchar("first_name", { length: 128 }),
     last_name: varchar("last_name", { length: 128 }),
@@ -242,6 +244,25 @@ export type User = InferModel<typeof users>;
 export type NewUser = InferModel<typeof users, "insert">;
 
 /**
+ * INSTITUTIONS
+ */
+export const institutions = pgTable("institutions", {
+  institution_id: uuid("institution_id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 256 }).notNull(),
+  description: text("description"),
+  logo_url: varchar("logo_url", { length: 1000 }),
+  email_domain: varchar("email_domain", { length: 128 }), // Optional: restrict to institutional emails
+  created_by: uuid("created_by").notNull(), // Super Admin who created this institution
+  created_at: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updated_at: timestamp("updated_at", { withTimezone: true }),
+});
+
+export type Institution = InferModel<typeof institutions>;
+export type NewInstitution = InferModel<typeof institutions, "insert">;
+
+/**
  * LOCATIONS
  */
 export const locations = pgTable("locations", {
@@ -264,6 +285,7 @@ export type NewLocation = InferModel<typeof locations, "insert">;
  */
 export const courses = pgTable("courses", {
   course_id: uuid("course_id").primaryKey().defaultRandom(),
+  institution_id: uuid("institution_id"), // Institution that owns this course
   title: varchar("title", { length: 512 }).notNull(),
   description: text("description"),
   category: varchar("category", { length: 128 }),
@@ -308,6 +330,7 @@ export type NewCourseRating = InferModel<typeof course_ratings, "insert">;
 export const lessons = pgTable("lessons", {
   lesson_id: uuid("lesson_id").primaryKey().defaultRandom(),
   course_id: uuid("course_id").notNull(),
+  institution_id: uuid("institution_id"), // Institution that owns this lesson
   title: varchar("title", { length: 512 }).notNull(),
   description: text("description"),
   category: varchar("category", { length: 128 }),
@@ -333,6 +356,7 @@ export const course_enrollments = pgTable("course_enrollments", {
   enrollment_id: uuid("enrollment_id").primaryKey().defaultRandom(),
   user_id: uuid("user_id").notNull(),
   course_id: uuid("course_id").notNull(),
+  institution_id: uuid("institution_id"), // Institution that owns this enrollment
   enrollment_status: enrollmentStatusEnum("enrollment_status").default(
     "not_started"
   ),
@@ -516,6 +540,7 @@ export type NewQuizAnswer = InferModel<typeof quiz_answers, "insert">;
  */
 export const forums = pgTable("forums", {
   forum_id: uuid("forum_id").primaryKey().defaultRandom(),
+  institution_id: uuid("institution_id"), // Institution that owns this forum
   name: varchar("name", { length: 256 }).notNull(),
   description: text("description"),
   slug: varchar("slug", { length: 256 }).notNull(),
@@ -625,6 +650,7 @@ export type NewPostReadStatus = InferModel<typeof post_read_status, "insert">;
  */
 export const chatrooms = pgTable("chatrooms", {
   chatroom_id: uuid("chatroom_id").primaryKey().defaultRandom(),
+  institution_id: uuid("institution_id"), // Institution that owns this chatroom
   chatroom_type: chatroomTypeEnum("chatroom_type").notNull(),
   name: varchar("name", { length: 256 }),
   description: text("description"),
@@ -795,6 +821,7 @@ export type NewSystemLog = InferModel<typeof system_logs, "insert">;
  */
 export const announcements = pgTable("announcements", {
   announcement_id: uuid("announcement_id").primaryKey().defaultRandom(),
+  institution_id: uuid("institution_id"), // Institution that owns this announcement
   title: varchar("title", { length: 512 }).notNull(),
   content: text("content").notNull(),
   created_by: uuid("created_by").notNull(),
@@ -915,7 +942,7 @@ export type NewNotification = InferModel<typeof notifications, "insert">;
  */
 
 /* Users relations */
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   // user -> courses created
   courses_created: many(courses),
   // user -> forum posts
@@ -928,6 +955,16 @@ export const usersRelations = relations(users, ({ many }) => ({
   ratings: many(course_ratings),
   // user -> system logs
   system_logs: many(system_logs),
+  // user -> institution
+  institution: one(institutions, { fields: [users.institution_id], references: [institutions.institution_id] }),
+}));
+
+/* Institutions relations */
+export const institutionsRelations = relations(institutions, ({ many, one }) => ({
+  // institution -> users
+  users: many(users),
+  // institution -> creator (Super Admin)
+  creator: one(users, { fields: [institutions.created_by], references: [users.user_id] }),
 }));
 
 /* Locations relations */

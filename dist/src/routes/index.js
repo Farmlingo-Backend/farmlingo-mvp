@@ -15,6 +15,8 @@ const chats_route_1 = __importDefault(require("./chats.route")); // Direct chat
 const membership_route_1 = __importDefault(require("./membership.route"));
 const announcements_route_1 = __importDefault(require("./announcements.route"));
 const admin_route_1 = __importDefault(require("./admin.route"));
+const super_admin_route_1 = __importDefault(require("./super-admin.route")); // Super Admin routes
+const institution_admin_route_1 = __importDefault(require("./institution-admin.route")); // Institution Admin routes
 const webhooks_route_1 = __importDefault(require("./webhooks.route")); // Clerk webhooks
 const weather_route_1 = __importDefault(require("./weather.route")); // Weather data API
 const router = (0, express_1.Router)();
@@ -29,6 +31,8 @@ router.use('/chats', chats_route_1.default);
 router.use('/memberships', membership_route_1.default);
 router.use('/announcements', announcements_route_1.default);
 router.use('/admin', admin_route_1.default);
+router.use('/super-admin', super_admin_route_1.default);
+router.use('/institution-admin', institution_admin_route_1.default);
 router.use('/webhooks', webhooks_route_1.default);
 router.use('/weather', weather_route_1.default);
 exports.default = router;

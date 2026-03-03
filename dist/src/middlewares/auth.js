@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireSuperAdmin = exports.requireAdmin = exports.requireRole = exports.authenticate = void 0;
+exports.requireInstitutionMembership = exports.requireLearner = exports.requireInstructor = exports.requireInstitutionAdmin = exports.requireSuperAdmin = exports.requireAdmin = exports.requireRole = exports.authenticate = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const drizzle_orm_1 = require("drizzle-orm");
 const config_1 = require("../config/config");
@@ -51,9 +51,10 @@ const authenticate = async (req, res, next) => {
         }
         req.auth = {
             userId,
-            role: payload.role,
+            role: payload.role || user.role,
+            institutionId: user.institution_id,
             email: (_a = payload.email) !== null && _a !== void 0 ? _a : user.email,
-            clerk_user_id: (_c = (_b = payload.clerk_user_id) !== null && _b !== void 0 ? _b : user.clerk_user_id) !== null && _c !== void 0 ? _c : null
+            clerkUserId: (_c = (_b = payload.clerk_user_id) !== null && _b !== void 0 ? _b : user.clerk_user_id) !== null && _c !== void 0 ? _c : null
         };
         return next();
     }
@@ -63,8 +64,7 @@ const authenticate = async (req, res, next) => {
 };
 exports.authenticate = authenticate;
 /**
- * Role-based authorization middleware
- * Checks if the authenticated user has the required role
+ * Enhanced role-based authorization middleware with RBAC support
  */
 const requireRole = (requiredRoles) => {
     return (req, res, next) => {
@@ -73,10 +73,8 @@ const requireRole = (requiredRoles) => {
             return next(createHttpError(401, 'Authentication required'));
         }
         const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
-        // For now, we'll use a simple role check
-        // In a full implementation, roles would be managed by Clerk
-        if (!roles.includes('admin') && !roles.includes('super_admin')) {
-            return next(createHttpError(403, 'Insufficient permissions'));
+        if (!roles.includes(auth.role)) {
+            return next(createHttpError(403, `Insufficient permissions. Required: ${roles.join(', ')}, Got: ${auth.role}`));
         }
         return next();
     };
@@ -85,8 +83,39 @@ exports.requireRole = requireRole;
 /**
  * Admin-only authorization middleware
  */
-exports.requireAdmin = (0, exports.requireRole)(['admin', 'super_admin']);
+exports.requireAdmin = (0, exports.requireRole)(['super_admin']);
 /**
  * Super admin only authorization middleware
  */
 exports.requireSuperAdmin = (0, exports.requireRole)(['super_admin']);
+/**
+ * Institution Admin authorization middleware
+ */
+exports.requireInstitutionAdmin = (0, exports.requireRole)(['institution_admin', 'super_admin']);
+/**
+ * Instructor authorization middleware
+ */
+exports.requireInstructor = (0, exports.requireRole)(['instructor', 'institution_admin', 'super_admin']);
+/**
+ * Learner (Student/Farmer) authorization middleware
+ */
+exports.requireLearner = (0, exports.requireRole)(['student', 'farmer']);
+/**
+ * Middleware to ensure user belongs to an institution (for institution-scoped operations)
+ */
+const requireInstitutionMembership = (req, res, next) => {
+    const auth = req.auth;
+    if (!auth) {
+        return next(createHttpError(401, 'Authentication required'));
+    }
+    // Super Admin can access all resources
+    if (auth.role === 'super_admin') {
+        return next();
+    }
+    // Other roles must belong to an institution
+    if (!auth.institutionId) {
+        return next(createHttpError(403, 'Access denied: User must belong to an institution'));
+    }
+    return next();
+};
+exports.requireInstitutionMembership = requireInstitutionMembership;

@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { jwtSecret } from '../config/config';
 import { db } from '../db/dbconfig';
 import { users } from '../db/schema';
+import { AuthContext, Role } from '../types/rbac-comprehensive';
 
 interface HttpError extends Error {
   status?: number;
@@ -15,13 +16,6 @@ const createHttpError = (status: number, message: string): HttpError => {
   err.status = status;
   return err;
 };
-
-export interface AuthContext {
-  userId: string;
-  role?: string;
-  email?: string;
-  clerk_user_id?: string | null;
-}
 
 /**
  * Legacy JWT authentication middleware
@@ -78,9 +72,10 @@ export const authenticate = async (
 
     (req as any).auth = {
       userId,
-      role: payload.role,
+      role: (payload.role as Role) || user.role,
+      institutionId: user.institution_id,
       email: payload.email ?? user.email,
-      clerk_user_id: payload.clerk_user_id ?? user.clerk_user_id ?? null
+      clerkUserId: payload.clerk_user_id ?? user.clerk_user_id ?? null
     } as AuthContext;
 
     return next();
@@ -90,10 +85,9 @@ export const authenticate = async (
 };
 
 /**
- * Role-based authorization middleware
- * Checks if the authenticated user has the required role
+ * Enhanced role-based authorization middleware with RBAC support
  */
-export const requireRole = (requiredRoles: string | string[]) => {
+export const requireRole = (requiredRoles: Role | Role[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const auth = (req as any).auth as AuthContext;
 
@@ -103,10 +97,8 @@ export const requireRole = (requiredRoles: string | string[]) => {
 
     const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
     
-    // For now, we'll use a simple role check
-    // In a full implementation, roles would be managed by Clerk
-    if (!roles.includes('admin') && !roles.includes('super_admin')) {
-      return next(createHttpError(403, 'Insufficient permissions'));
+    if (!roles.includes(auth.role as Role)) {
+      return next(createHttpError(403, `Insufficient permissions. Required: ${roles.join(', ')}, Got: ${auth.role}`));
     }
 
     return next();
@@ -116,9 +108,47 @@ export const requireRole = (requiredRoles: string | string[]) => {
 /**
  * Admin-only authorization middleware
  */
-export const requireAdmin = requireRole(['admin', 'super_admin']);
+export const requireAdmin = requireRole(['super_admin']);
 
 /**
  * Super admin only authorization middleware
  */
 export const requireSuperAdmin = requireRole(['super_admin']);
+
+/**
+ * Institution Admin authorization middleware
+ */
+export const requireInstitutionAdmin = requireRole(['institution_admin', 'super_admin']);
+
+/**
+ * Instructor authorization middleware
+ */
+export const requireInstructor = requireRole(['instructor', 'institution_admin', 'super_admin']);
+
+/**
+ * Learner (Student/Farmer) authorization middleware
+ */
+export const requireLearner = requireRole(['student', 'farmer']);
+
+/**
+ * Middleware to ensure user belongs to an institution (for institution-scoped operations)
+ */
+export const requireInstitutionMembership = (req: Request, res: Response, next: NextFunction): void => {
+  const auth = (req as any).auth as AuthContext;
+
+  if (!auth) {
+    return next(createHttpError(401, 'Authentication required'));
+  }
+
+  // Super Admin can access all resources
+  if (auth.role === 'super_admin') {
+    return next();
+  }
+
+  // Other roles must belong to an institution
+  if (!auth.institutionId) {
+    return next(createHttpError(403, 'Access denied: User must belong to an institution'));
+  }
+
+  return next();
+};

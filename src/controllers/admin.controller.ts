@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
+import { eq, sql } from 'drizzle-orm';
 import { db } from '../db/dbconfig';
-import { users, courses, course_enrollments, forums, chatrooms, chat_messages, announcements } from '../db/schema';
-import { sql } from 'drizzle-orm';
+import { users, institutions } from '../db/schema';
+import { AuthContext, Role } from '../types/rbac-comprehensive';
+import { getUserInstitutionId } from '../middlewares/rbac';
 
 interface HttpError extends Error {
   status?: number;
@@ -13,176 +15,426 @@ const createHttpError = (status: number, message: string): HttpError => {
   return err;
 };
 
-// Admin Dashboard Overview
-export const getAdminDashboard = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const auth = req.auth;
+/**
+ * Admin Controller
+ * Handles Super Admin operations for platform management
+ */
+export class AdminController {
+  /**
+   * Get platform statistics (Super Admin only)
+   */
+  async getPlatformStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const auth = (req as any).auth as AuthContext;
 
-    if (!auth) {
-      return next(createHttpError(401, 'Unauthorized'));
+      if (!auth || auth.role !== 'super_admin') {
+        return next(createHttpError(403, 'Super admin access required'));
+      }
+
+      // Get platform-wide statistics
+      const stats = await db.transaction(async (tx) => {
+        const userStats = await tx
+          .select({
+            totalUsers: sql<number>`COUNT(*)`,
+            activeUsers: sql<number>`COUNT(CASE WHEN ${users.is_active} = true THEN 1 END)`,
+            students: sql<number>`COUNT(CASE WHEN ${users.role} = 'student' THEN 1 END)`,
+            farmers: sql<number>`COUNT(CASE WHEN ${users.role} = 'farmer' THEN 1 END)`,
+            instructors: sql<number>`COUNT(CASE WHEN ${users.role} = 'instructor' THEN 1 END)`,
+            institutionAdmins: sql<number>`COUNT(CASE WHEN ${users.role} = 'institution_admin' THEN 1 END)`,
+          })
+          .from(users);
+
+        const institutionStats = await tx
+          .select({
+            totalInstitutions: sql<number>`COUNT(*)`,
+            institutionsWithUsers: sql<number>`COUNT(CASE WHEN ${institutions.created_by} IS NOT NULL THEN 1 END)`,
+          })
+          .from(institutions);
+
+        return {
+          users: userStats[0],
+          institutions: institutionStats[0],
+          timestamp: new Date().toISOString()
+        };
+      });
+
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (err) {
+      next(err as Error);
     }
-
-    if (auth.role !== 'admin' && auth.role !== 'super_admin') {
-      return next(createHttpError(403, 'Forbidden: Admin access required'));
-    }
-
-    // Get comprehensive dashboard data
-    const [
-      userStats,
-      courseStats,
-      enrollmentStats,
-      forumStats,
-      chatStats,
-      announcementStats
-    ] = await Promise.all([
-      // User statistics
-      db.select({
-        total: sql<number>`count(*)`,
-        active: sql<number>`count(case when ${users.is_active} = true then 1 end)`,
-        recent: sql<number>`count(case when ${users.created_at} >= now() - interval '30 days' then 1 end)`
-      }).from(users),
-
-      // Course statistics
-      db.select({
-        total: sql<number>`count(*)`,
-        published: sql<number>`count(case when ${courses.status} = 'published' then 1 end)`,
-        draft: sql<number>`count(case when ${courses.status} = 'draft' then 1 end)`
-      }).from(courses),
-
-      // Enrollment statistics
-      db.select({
-        total: sql<number>`count(*)`,
-        completed: sql<number>`count(case when ${course_enrollments.enrollment_status} = 'completed' then 1 end)`,
-        inProgress: sql<number>`count(case when ${course_enrollments.enrollment_status} = 'in_progress' then 1 end)`
-      }).from(course_enrollments),
-
-      // Forum statistics
-      db.select({
-        total: sql<number>`count(*)`,
-        active: sql<number>`count(case when ${forums.is_active} = true then 1 end)`
-      }).from(forums),
-
-      // Chat statistics
-      db.select({
-        rooms: sql<number>`count(distinct ${chatrooms.chatroom_id})`,
-        messages: sql<number>`count(${chat_messages.message_id})`,
-        activeRooms: sql<number>`count(case when ${chatrooms.status} = 'active' then 1 end)`
-      }).from(chatrooms).leftJoin(chat_messages, sql`${chatrooms.chatroom_id} = ${chat_messages.chatroom_id}`),
-
-      // Announcement statistics
-      db.select({
-        total: sql<number>`count(*)`,
-        active: sql<number>`count(case when ${announcements.is_active} = true then 1 end)`
-      }).from(announcements)
-    ]);
-
-    // Get recent activities
-    const recentActivities = await db
-      .select({
-        type: sql<string>`'user_registration'`,
-        description: sql<string>`concat(${users.first_name}, ' ', ${users.last_name}, ' registered')`,
-        created_at: users.created_at,
-        user_id: users.user_id
-      })
-      .from(users)
-      .orderBy(sql`${users.created_at} desc`)
-      .limit(10);
-
-    // Get system alerts (example: inactive announcements)
-    const inactiveAnnouncements = await db
-      .select()
-      .from(announcements)
-      .where(sql`${announcements.is_active} = false`)
-      .orderBy(sql`${announcements.updated_at} desc`)
-      .limit(5);
-
-    res.status(200).json({
-      overview: {
-        users: userStats[0],
-        courses: courseStats[0],
-        enrollments: enrollmentStats[0],
-        forums: forumStats[0],
-        chat: chatStats[0],
-        announcements: announcementStats[0]
-      },
-      recentActivities,
-      alerts: {
-        inactiveAnnouncements,
-        systemStatus: 'healthy'
-      },
-      quickActions: [
-        { action: 'create_announcement', label: 'Create Announcement', endpoint: '/announcements' },
-        { action: 'manage_users', label: 'Manage Users', endpoint: '/admin/users' },
-        { action: 'view_reports', label: 'View Reports', endpoint: '/admin/reports' },
-        { action: 'system_health', label: 'System Health', endpoint: '/admin/system/health' }
-      ]
-    });
-  } catch (err) {
-    next(err as Error);
   }
-};
 
-// Admin Reports
-export const getAdminReports = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const auth = req.auth;
+  /**
+   * Get all institutions (Super Admin only)
+   */
+  async getAllInstitutions(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const auth = (req as any).auth as AuthContext;
 
-    if (!auth) {
-      return next(createHttpError(401, 'Unauthorized'));
+      if (!auth || auth.role !== 'super_admin') {
+        return next(createHttpError(403, 'Super admin access required'));
+      }
+
+      const institutionsList = await db
+        .select({
+          institutionId: institutions.institution_id,
+          name: institutions.name,
+          description: institutions.description,
+          logoUrl: institutions.logo_url,
+          emailDomain: institutions.email_domain,
+          createdBy: institutions.created_by,
+          createdAt: institutions.created_at,
+          updatedAt: institutions.updated_at,
+        })
+        .from(institutions)
+        .orderBy(institutions.created_at);
+
+      res.json({
+        success: true,
+        data: institutionsList
+      });
+    } catch (err) {
+      next(err as Error);
     }
-
-    if (auth.role !== 'admin' && auth.role !== 'super_admin') {
-      return next(createHttpError(403, 'Forbidden: Admin access required'));
-    }
-
-    // Generate various reports
-    const userGrowth = await db.execute(sql`
-      SELECT
-        date_trunc('month', created_at) as month,
-        count(*) as new_users
-      FROM users
-      WHERE created_at >= now() - interval '12 months'
-      GROUP BY month
-      ORDER BY month
-    `);
-
-    const coursePopularity = await db.execute(sql`
-      SELECT
-        c.title,
-        count(e.enrollment_id) as enrollment_count
-      FROM courses c
-      LEFT JOIN course_enrollments e ON c.course_id = e.course_id
-      GROUP BY c.course_id, c.title
-      ORDER BY enrollment_count DESC
-      LIMIT 10
-    `);
-
-    const forumActivity = await db.execute(sql`
-      SELECT
-        f.name,
-        f.post_count,
-        f.member_count
-      FROM forums f
-      WHERE f.is_active = true
-      ORDER BY f.post_count DESC
-      LIMIT 10
-    `);
-
-    res.status(200).json({
-      userGrowth,
-      coursePopularity,
-      forumActivity,
-      generatedAt: new Date().toISOString()
-    });
-  } catch (err) {
-    next(err as Error);
   }
-};
+
+  /**
+   * Get all users across the platform (Super Admin only)
+   */
+  async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const auth = (req as any).auth as AuthContext;
+
+      if (!auth || auth.role !== 'super_admin') {
+        return next(createHttpError(403, 'Super admin access required'));
+      }
+
+      const usersList = await db
+        .select({
+          userId: users.user_id,
+          email: users.email,
+          firstName: users.first_name,
+          lastName: users.last_name,
+          role: users.role,
+          institutionId: users.institution_id,
+          isActive: users.is_active,
+          clerkUserId: users.clerk_user_id,
+          createdAt: users.created_at,
+          updatedAt: users.updated_at,
+        })
+        .from(users)
+        .orderBy(users.created_at);
+
+      res.json({
+        success: true,
+        data: usersList
+      });
+    } catch (err) {
+      next(err as Error);
+    }
+  }
+
+  /**
+   * Get users by institution (Institution Admin + Super Admin)
+   */
+  async getUsersByInstitution(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const auth = (req as any).auth as AuthContext;
+      const { institutionId } = req.params;
+
+      if (!auth) {
+        return next(createHttpError(401, 'Authentication required'));
+      }
+
+      // Super Admin can access all institutions
+      if (auth.role !== 'super_admin') {
+        // Institution Admin can only access their own institution
+        if (auth.role !== 'institution_admin') {
+          return next(createHttpError(403, 'Insufficient permissions'));
+        }
+
+        // Verify the user belongs to the requested institution
+        if (auth.institutionId !== institutionId) {
+          return next(createHttpError(403, 'Access denied: Cannot access users from different institution'));
+        }
+      }
+
+      const usersList = await db
+        .select({
+          userId: users.user_id,
+          email: users.email,
+          firstName: users.first_name,
+          lastName: users.last_name,
+          role: users.role,
+          isActive: users.is_active,
+          clerkUserId: users.clerk_user_id,
+          createdAt: users.created_at,
+          updatedAt: users.updated_at,
+        })
+        .from(users)
+        .where(eq(users.institution_id, institutionId))
+        .orderBy(users.created_at);
+
+      res.json({
+        success: true,
+        data: usersList
+      });
+    } catch (err) {
+      next(err as Error);
+    }
+  }
+
+  /**
+   * Create a new institution (Super Admin only)
+   */
+  async createInstitution(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const auth = (req as any).auth as AuthContext;
+      const { name, description, logoUrl, emailDomain } = req.body;
+
+      if (!auth || auth.role !== 'super_admin') {
+        return next(createHttpError(403, 'Super admin access required'));
+      }
+
+      if (!name) {
+        return next(createHttpError(400, 'Institution name is required'));
+      }
+
+      const [newInstitution] = await db
+        .insert(institutions)
+        .values({
+          name,
+          description: description || null,
+          logo_url: logoUrl || null,
+          email_domain: emailDomain || null,
+          created_by: auth.userId,
+          created_at: new Date(),
+        })
+        .returning({
+          institutionId: institutions.institution_id,
+          name: institutions.name,
+          description: institutions.description,
+          logoUrl: institutions.logo_url,
+          emailDomain: institutions.email_domain,
+          createdBy: institutions.created_by,
+          createdAt: institutions.created_at,
+        });
+
+      res.status(201).json({
+        success: true,
+        data: newInstitution
+      });
+    } catch (err) {
+      next(err as Error);
+    }
+  }
+
+  /**
+   * Update institution (Super Admin only)
+   */
+  async updateInstitution(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const auth = (req as any).auth as AuthContext;
+      const { institutionId } = req.params;
+      const { name, description, logoUrl, emailDomain } = req.body;
+
+      if (!auth || auth.role !== 'super_admin') {
+        return next(createHttpError(403, 'Super admin access required'));
+      }
+
+      const [updatedInstitution] = await db
+        .update(institutions)
+        .set({
+          name: name || sql`name`,
+          description: description || sql`description`,
+          logo_url: logoUrl || sql`logo_url`,
+          email_domain: emailDomain || sql`email_domain`,
+          updated_at: new Date(),
+        })
+        .where(eq(institutions.institution_id, institutionId))
+        .returning({
+          institutionId: institutions.institution_id,
+          name: institutions.name,
+          description: institutions.description,
+          logoUrl: institutions.logo_url,
+          emailDomain: institutions.email_domain,
+          updatedBy: institutions.created_by,
+          updatedAt: institutions.updated_at,
+        });
+
+      if (!updatedInstitution) {
+        return next(createHttpError(404, 'Institution not found'));
+      }
+
+      res.json({
+        success: true,
+        data: updatedInstitution
+      });
+    } catch (err) {
+      next(err as Error);
+    }
+  }
+
+  /**
+   * Delete institution (Super Admin only)
+   */
+  async deleteInstitution(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const auth = (req as any).auth as AuthContext;
+      const { institutionId } = req.params;
+
+      if (!auth || auth.role !== 'super_admin') {
+        return next(createHttpError(403, 'Super admin access required'));
+      }
+
+      // Check if institution exists and get its details
+      const [institution] = await db
+        .select()
+        .from(institutions)
+        .where(eq(institutions.institution_id, institutionId))
+        .limit(1);
+
+      if (!institution) {
+        return next(createHttpError(404, 'Institution not found'));
+      }
+
+      // Delete the institution (users will have institution_id set to NULL due to ON DELETE SET NULL)
+      await db
+        .delete(institutions)
+        .where(eq(institutions.institution_id, institutionId));
+
+      res.json({
+        success: true,
+        message: 'Institution deleted successfully'
+      });
+    } catch (err) {
+      next(err as Error);
+    }
+  }
+
+  /**
+   * Promote user to Institution Admin (Super Admin only)
+   */
+  async promoteToInstitutionAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const auth = (req as any).auth as AuthContext;
+      const { userId } = req.params;
+
+      if (!auth || auth.role !== 'super_admin') {
+        return next(createHttpError(403, 'Super admin access required'));
+      }
+
+      // Check if user exists and belongs to an institution
+      const [user] = await db
+        .select({
+          userId: users.user_id,
+          role: users.role,
+          institutionId: users.institution_id,
+          email: users.email,
+        })
+        .from(users)
+        .where(eq(users.user_id, userId))
+        .limit(1);
+
+      if (!user) {
+        return next(createHttpError(404, 'User not found'));
+      }
+
+      if (!user.institutionId) {
+        return next(createHttpError(400, 'User must belong to an institution to be promoted'));
+      }
+
+      if (user.role === 'institution_admin') {
+        return next(createHttpError(400, 'User is already an Institution Admin'));
+      }
+
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          role: 'institution_admin' as Role,
+          updated_at: new Date(),
+        })
+        .where(eq(users.user_id, userId))
+        .returning({
+          userId: users.user_id,
+          email: users.email,
+          firstName: users.first_name,
+          lastName: users.last_name,
+          role: users.role,
+          institutionId: users.institution_id,
+        });
+
+      res.json({
+        success: true,
+        data: updatedUser,
+        message: 'User promoted to Institution Admin successfully'
+      });
+    } catch (err) {
+      next(err as Error);
+    }
+  }
+
+  /**
+   * Demote Institution Admin to regular user (Super Admin only)
+   */
+  async demoteInstitutionAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const auth = (req as any).auth as AuthContext;
+      const { userId } = req.params;
+
+      if (!auth || auth.role !== 'super_admin') {
+        return next(createHttpError(403, 'Super admin access required'));
+      }
+
+      // Check if user exists and is an Institution Admin
+      const [user] = await db
+        .select({
+          userId: users.user_id,
+          role: users.role,
+          institutionId: users.institution_id,
+          email: users.email,
+        })
+        .from(users)
+        .where(eq(users.user_id, userId))
+        .limit(1);
+
+      if (!user) {
+        return next(createHttpError(404, 'User not found'));
+      }
+
+      if (user.role !== 'institution_admin') {
+        return next(createHttpError(400, 'User is not an Institution Admin'));
+      }
+
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          role: 'instructor' as Role, // Default role for demoted admins
+          updated_at: new Date(),
+        })
+        .where(eq(users.user_id, userId))
+        .returning({
+          userId: users.user_id,
+          email: users.email,
+          firstName: users.first_name,
+          lastName: users.last_name,
+          role: users.role,
+          institutionId: users.institution_id,
+        });
+
+      res.json({
+        success: true,
+        data: updatedUser,
+        message: 'Institution Admin demoted successfully'
+      });
+    } catch (err) {
+      next(err as Error);
+    }
+  }
+}
+
+// Export singleton instance
+export const adminController = new AdminController();

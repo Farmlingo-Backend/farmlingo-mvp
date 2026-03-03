@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { chatService } from '../services/chats.service';
-import { AuthContext } from '../middlewares/auth'; // Ensure this matches actual auth middleware export
+import { AuthContext, Role } from '../types/rbac-comprehensive';
 
 const createHttpError = (status: number, message: string) => {
     const err = new Error(message) as any;

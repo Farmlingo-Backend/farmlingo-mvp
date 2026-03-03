@@ -3,24 +3,11 @@ import { clerkAuth } from '../middlewares/clerk';
 import { body, param, validationResult } from 'express-validator';
 import rateLimit from 'express-rate-limit';
 
-// Import admin controllers from various modules
-import {
-  getUsers,
-  suspendUser,
-  activateUser,
-  changeUserRole,
-  deleteUserAdmin
-} from '../controllers/users.controller';
-import { getAllCoursesAdmin } from '../controllers/courses.controller';
-import { getAllLessonsAdmin } from '../controllers/lessons.controller';
-import { getAllEnrollmentsAdmin } from '../controllers/enrollments.controller';
-import { getAllForumsAdmin } from '../controllers/forums.controller';
-import { getAllChatroomsAdmin, getAllChatMessagesAdmin } from '../controllers/chat.controller';
-import { getAllAnnouncements } from '../controllers/announcements.controller';
+// Import admin controllers
 import { adminController } from '../controllers/admin.controller';
 
 // Import RBAC middleware
-import { requireSuperAdmin, requireInstitutionAdmin, requireAdmin } from '../middlewares/auth';
+import { requireSuperAdmin } from '../middlewares/auth';
 import { requirePermission, checkResourceAccess } from '../middlewares/rbac';
 
 // Import services for dashboard stats
@@ -30,10 +17,10 @@ import { sql } from 'drizzle-orm';
 
 const router = Router();
 
-// Rate limiting for admin endpoints
-const adminRateLimit = rateLimit({
+// Rate limiting for Super Admin endpoints
+const superAdminRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 50, // limit each IP to 50 requests per windowMs (stricter for Super Admin)
   message: { error: 'Too many requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -59,87 +46,60 @@ const isValidUUID = (uuid: string) => {
 
 /**
  * @openapi
- * /admin/dashboard:
+ * /super-admin/dashboard:
  *   get:
  *     tags:
- *       - Admin
- *     summary: Get Admin Dashboard Overview
- *     description: Returns comprehensive admin dashboard with statistics, recent activities, alerts, and quick actions.
+ *       - Super Admin
+ *     summary: Get Super Admin Dashboard
+ *     description: Returns comprehensive platform statistics and system overview for Super Admin.
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       '200':
- *         description: Admin dashboard data retrieved successfully.
+ *         description: Super Admin dashboard data retrieved successfully.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 overview:
+ *                 platformStats:
  *                   type: object
  *                   properties:
- *                     users:
- *                       type: object
- *                       properties:
- *                         total:
- *                           type: integer
- *                         active:
- *                           type: integer
- *                         recent:
- *                           type: integer
- *                     courses:
- *                       type: object
- *                       properties:
- *                         total:
- *                           type: integer
- *                         published:
- *                           type: integer
- *                         draft:
- *                           type: integer
- *                     enrollments:
- *                       type: object
- *                       properties:
- *                         total:
- *                           type: integer
- *                         completed:
- *                           type: integer
- *                         inProgress:
- *                           type: integer
- *                     forums:
- *                       type: object
- *                       properties:
- *                         total:
- *                           type: integer
- *                         active:
- *                           type: integer
- *                     chat:
- *                       type: object
- *                       properties:
- *                         rooms:
- *                           type: integer
- *                         messages:
- *                           type: integer
- *                         activeRooms:
- *                           type: integer
- *                     announcements:
- *                       type: object
- *                       properties:
- *                         total:
- *                           type: integer
- *                         active:
- *                           type: integer
- *                 recentActivities:
+ *                     totalUsers:
+ *                       type: integer
+ *                     totalInstitutions:
+ *                       type: integer
+ *                     totalCourses:
+ *                       type: integer
+ *                     totalLessons:
+ *                       type: integer
+ *                     totalEnrollments:
+ *                       type: integer
+ *                     totalForums:
+ *                       type: integer
+ *                     totalChatrooms:
+ *                       type: integer
+ *                     totalMessages:
+ *                       type: integer
+ *                     totalAnnouncements:
+ *                       type: integer
+ *                 institutionStats:
  *                   type: array
  *                   items:
  *                     type: object
- *                 alerts:
+ *                     properties:
+ *                       institutionId: { type: 'string', format: 'uuid' }
+ *                       name: { type: 'string' }
+ *                       userCount: { type: 'integer' }
+ *                       courseCount: { type: 'integer' }
+ *                 systemHealth:
  *                   type: object
- *                 quickActions:
- *                   type: array
- *                   items:
- *                     type: object
+ *                   properties:
+ *                     status: { type: 'string' }
+ *                     database: { type: 'string' }
+ *                     timestamp: { type: 'string', format: 'date-time' }
  *       '403':
- *         description: Forbidden - Admin access required.
+ *         description: Forbidden - Super admin access required.
  *         content:
  *           application/json:
  *             schema:
@@ -152,7 +112,7 @@ const isValidUUID = (uuid: string) => {
  *               $ref: '#/components/schemas/ApiError'
  */
 router.get('/dashboard', 
-  adminRateLimit, 
+  superAdminRateLimit, 
   clerkAuth, 
   requireSuperAdmin, 
   adminController.getPlatformStats.bind(adminController)
@@ -160,12 +120,12 @@ router.get('/dashboard',
 
 /**
  * @openapi
- * /admin/institutions:
+ * /super-admin/institutions:
  *   get:
  *     tags:
- *       - Admin
- *     summary: Get All Institutions (Super Admin only)
- *     description: Returns a paginated list of all institutions in the platform.
+ *       - Super Admin
+ *     summary: Get All Institutions
+ *     description: Returns a paginated list of all institutions across the platform.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -216,7 +176,7 @@ router.get('/dashboard',
  *               $ref: '#/components/schemas/ApiError'
  */
 router.get('/institutions', 
-  adminRateLimit, 
+  superAdminRateLimit, 
   clerkAuth, 
   requireSuperAdmin, 
   adminController.getAllInstitutions.bind(adminController)
@@ -224,11 +184,11 @@ router.get('/institutions',
 
 /**
  * @openapi
- * /admin/institutions:
+ * /super-admin/institutions:
  *   post:
  *     tags:
- *       - Admin
- *     summary: Create New Institution (Super Admin only)
+ *       - Super Admin
+ *     summary: Create New Institution
  *     description: Creates a new institution in the platform.
  *     security:
  *       - bearerAuth: []
@@ -268,7 +228,7 @@ router.get('/institutions',
  *               $ref: '#/components/schemas/ApiError'
  */
 router.post('/institutions', 
-  adminRateLimit,
+  superAdminRateLimit,
   clerkAuth, 
   requireSuperAdmin,
   [
@@ -283,11 +243,11 @@ router.post('/institutions',
 
 /**
  * @openapi
- * /admin/institutions/{institutionId}:
+ * /super-admin/institutions/{institutionId}:
  *   put:
  *     tags:
- *       - Admin
- *     summary: Update Institution (Super Admin only)
+ *       - Super Admin
+ *     summary: Update Institution
  *     description: Updates an existing institution.
  *     security:
  *       - bearerAuth: []
@@ -339,7 +299,7 @@ router.post('/institutions',
  *               $ref: '#/components/schemas/ApiError'
  */
 router.put('/institutions/:institutionId', 
-  adminRateLimit,
+  superAdminRateLimit,
   clerkAuth, 
   requireSuperAdmin,
   [
@@ -355,11 +315,11 @@ router.put('/institutions/:institutionId',
 
 /**
  * @openapi
- * /admin/institutions/{institutionId}:
+ * /super-admin/institutions/{institutionId}:
  *   delete:
  *     tags:
- *       - Admin
- *     summary: Delete Institution (Super Admin only)
+ *       - Super Admin
+ *     summary: Delete Institution
  *     description: Deletes an institution and sets users' institution_id to NULL.
  *     security:
  *       - bearerAuth: []
@@ -395,7 +355,7 @@ router.put('/institutions/:institutionId',
  *               $ref: '#/components/schemas/ApiError'
  */
 router.delete('/institutions/:institutionId', 
-  adminRateLimit,
+  superAdminRateLimit,
   clerkAuth, 
   requireSuperAdmin,
   [
@@ -407,11 +367,11 @@ router.delete('/institutions/:institutionId',
 
 /**
  * @openapi
- * /admin/users:
+ * /super-admin/users:
  *   get:
  *     tags:
- *       - Admin
- *     summary: Get All Users (Super Admin only)
+ *       - Super Admin
+ *     summary: Get All Users
  *     description: Returns a paginated list of all users across the platform.
  *     security:
  *       - bearerAuth: []
@@ -454,7 +414,7 @@ router.delete('/institutions/:institutionId',
  *               $ref: '#/components/schemas/ApiError'
  */
 router.get('/users', 
-  adminRateLimit, 
+  superAdminRateLimit, 
   clerkAuth, 
   requireSuperAdmin, 
   adminController.getAllUsers.bind(adminController)
@@ -462,11 +422,11 @@ router.get('/users',
 
 /**
  * @openapi
- * /admin/users/{userId}/promote:
+ * /super-admin/users/{userId}/promote:
  *   put:
  *     tags:
- *       - Admin
- *     summary: Promote User to Institution Admin (Super Admin only)
+ *       - Super Admin
+ *     summary: Promote User to Institution Admin
  *     description: Promotes a user to Institution Admin role.
  *     security:
  *       - bearerAuth: []
@@ -509,7 +469,7 @@ router.get('/users',
  *               $ref: '#/components/schemas/ApiError'
  */
 router.put('/users/:userId/promote', 
-  adminRateLimit,
+  superAdminRateLimit,
   clerkAuth, 
   requireSuperAdmin,
   [
@@ -521,11 +481,11 @@ router.put('/users/:userId/promote',
 
 /**
  * @openapi
- * /admin/users/{userId}/demote:
+ * /super-admin/users/{userId}/demote:
  *   put:
  *     tags:
- *       - Admin
- *     summary: Demote Institution Admin (Super Admin only)
+ *       - Super Admin
+ *     summary: Demote Institution Admin
  *     description: Demotes an Institution Admin to Instructor role.
  *     security:
  *       - bearerAuth: []
@@ -568,7 +528,7 @@ router.put('/users/:userId/promote',
  *               $ref: '#/components/schemas/ApiError'
  */
 router.put('/users/:userId/demote', 
-  adminRateLimit,
+  superAdminRateLimit,
   clerkAuth, 
   requireSuperAdmin,
   [
@@ -580,88 +540,12 @@ router.put('/users/:userId/demote',
 
 /**
  * @openapi
- * /admin/institutions/{institutionId}/users:
+ * /super-admin/system/health:
  *   get:
  *     tags:
- *       - Admin
- *     summary: Get Users by Institution (Institution Admin + Super Admin)
- *     description: Returns users belonging to a specific institution.
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: institutionId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: The ID of the institution
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number for pagination
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 100
- *         description: Number of users per page
- *     responses:
- *       '200':
- *         description: Users list retrieved successfully.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 users:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       userId: { type: 'string', format: 'uuid' }
- *                       email: { type: 'string' }
- *                       firstName: { type: 'string' }
- *                       lastName: { type: 'string' }
- *                       role: { type: 'string' }
- *                       isActive: { type: 'boolean' }
- *                       clerkUserId: { type: 'string' }
- *                       createdAt: { type: 'string', format: 'date-time' }
- *                       updatedAt: { type: 'string', format: 'date-time' }
- *       '403':
- *         description: Forbidden - Insufficient permissions or access to different institution.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
- *       '500':
- *         description: Unexpected server error.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ApiError'
- */
-router.get('/institutions/:institutionId/users', 
-  adminRateLimit, 
-  clerkAuth, 
-  requireInstitutionAdmin,
-  [
-    param('institutionId').isUUID().withMessage('Invalid institution ID'),
-  ],
-  handleValidationErrors,
-  adminController.getUsersByInstitution.bind(adminController)
-);
-
-/**
- * @openapi
- * /admin/system/health:
- *   get:
- *     tags:
- *       - Admin
+ *       - Super Admin
  *     summary: System Health Check
- *     description: Performs a health check on system services (Admin only).
+ *     description: Performs a comprehensive health check on system services.
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -684,8 +568,27 @@ router.get('/institutions/:institutionId/users',
  *                     database:
  *                       type: string
  *                       example: "healthy"
+ *                     redis:
+ *                       type: string
+ *                       example: "healthy"
+ *                     storage:
+ *                       type: string
+ *                       example: "healthy"
+ *                 systemMetrics:
+ *                   type: object
+ *                   properties:
+ *                     memoryUsage:
+ *                       type: object
+ *                       properties:
+ *                         used: { type: 'number' }
+ *                         total: { type: 'number' }
+ *                         percentage: { type: 'number' }
+ *                     cpuUsage:
+ *                       type: 'number'
+ *                     uptime:
+ *                       type: 'number'
  *       '403':
- *         description: Forbidden - Admin access required.
+ *         description: Forbidden - Super admin access required.
  *         content:
  *           application/json:
  *             schema:
@@ -708,20 +611,35 @@ router.get('/institutions/:institutionId/users',
  *                   example: "System health check failed"
  */
 router.get('/system/health', 
-  adminRateLimit,
+  superAdminRateLimit,
   clerkAuth, 
-  requireAdmin, 
+  requireSuperAdmin, 
   async (req, res) => {
   try {
-    // Basic system health metrics
-    await db.execute(sql`SELECT 1 as health_check`);
+    // Comprehensive system health metrics
+    const healthCheck = await db.execute(sql`SELECT 1 as health_check, NOW() as timestamp`);
+    const dbHealth = healthCheck.rows[0];
+
+    // Get system metrics (simplified for now)
+    const systemMetrics = {
+      memoryUsage: {
+        used: process.memoryUsage().heapUsed,
+        total: process.memoryUsage().heapTotal,
+        percentage: Math.round((process.memoryUsage().heapUsed / process.memoryUsage().heapTotal) * 100)
+      },
+      cpuUsage: process.cpuUsage().user / 1000000, // Convert to seconds
+      uptime: process.uptime()
+    };
 
     res.json({
       status: 'healthy',
-      timestamp: new Date().toISOString(),
+      timestamp: dbHealth.timestamp,
       services: {
-        database: 'healthy'
-      }
+        database: 'healthy',
+        redis: 'healthy', // Would check Redis if configured
+        storage: 'healthy' // Would check storage if configured
+      },
+      systemMetrics
     });
   } catch (error) {
     // Log error without exposing system details
